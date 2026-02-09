@@ -178,7 +178,7 @@
       max-width:55vw;
     }
 
-    .ordererSpecSelect{
+    .ordererSpecInput{
       width:260px;
       max-width:55vw;
     }
@@ -248,27 +248,27 @@
 <button class="btn" id="ptDischargeBtn" type="button" title="გაწერის დროის დაფიქსირება">გაწერა</button>
 <button class="btn" id="ptTransferBtn" type="button" title="გადაყვანის დროისა და განყოფილების დაფიქსირება">გადაყვანა</button>
 <input aria-label="გაწერის დრო" class="mini" id="ptDischarge" placeholder="გაწერის დრო" readonly type="text" style="display:none;"/>
-<select aria-label="გადაყვანის განყოფილება" class="mini" id="ptTransferDept" style="display:none;">
-  <option value="">გადაყვანის განყოფილება</option>
-  <option value="ზოგადი რეანიმაცია">ზოგადი რეანიმაცია</option>
-  <option value="კარდიორეანიმაცია">კარდიორეანიმაცია</option>
-  <option value="ნეირორეანიმაცია">ნეირორეანიმაცია</option>
-  <option value="ნევროლოგია">ნევროლოგია</option>
-  <option value="ნეიროქირურგია">ნეიროქირურგია</option>
-  <option value="თორაკოქირურგია">თორაკოქირურგია</option>
-  <option value="ტრავმატოლოგია">ტრავმატოლოგია</option>
-  <option value="ანგიოქირურგია">ანგიოქირურგია</option>
-  <option value="ყბა-სახის ქირურგია">ყბა-სახის ქირურგია</option>
-  <option value="უროლოგია">უროლოგია</option>
-  <option value="ნეფროლოგია">ნეფროლოგია</option>
-  <option value="ჰეპატოლოგია">ჰეპატოლოგია</option>
-  <option value="ინფექციური">ინფექციური</option>
-  <option value="შინაგანი მედიცინა">შინაგანი მედიცინა</option>
-  <option value="კარდიოლოგია">კარდიოლოგია</option>
-  <option value="ონკოჰემატოლოგია 1">ონკოჰემატოლოგია 1</option>
-  <option value="ონკოჰემატოლოგია 2">ონკოჰემატოლოგია 2</option>
-  <option value="გინეკოლოგია">გინეკოლოგია</option>
-</select>
+<input aria-label="გადაყვანის განყოფილება" class="mini" id="ptTransferDept" list="deptOptions" placeholder="გადაყვანის განყოფილება" style="display:none;" type="text"/>
+<datalist id="deptOptions">
+  <option value="ზოგადი რეანიმაცია"></option>
+  <option value="კარდიორეანიმაცია"></option>
+  <option value="ნეირორეანიმაცია"></option>
+  <option value="ნევროლოგია"></option>
+  <option value="ნეიროქირურგია"></option>
+  <option value="თორაკოქირურგია"></option>
+  <option value="ტრავმატოლოგია"></option>
+  <option value="ანგიოქირურგია"></option>
+  <option value="ყბა-სახის ქირურგია"></option>
+  <option value="უროლოგია"></option>
+  <option value="ნეფროლოგია"></option>
+  <option value="ჰეპატოლოგია"></option>
+  <option value="ინფექციური"></option>
+  <option value="შინაგანი მედიცინა"></option>
+  <option value="კარდიოლოგია"></option>
+  <option value="ონკოჰემატოლოგია 1"></option>
+  <option value="ონკოჰემატოლოგია 2"></option>
+  <option value="გინეკოლოგია"></option>
+</datalist>
 <input aria-label="გადაყვანის დრო" class="mini" id="ptTransferTime" placeholder="გადაყვანის დრო" readonly type="text" style="display:none;"/>
 </div>
 <button class="btn" id="expandAll">ყველას გახსნა</button>
@@ -984,6 +984,7 @@
   const PATIENT_ID = (urlParams.get("pid") || "").trim();
   const ROOM_KEY = (urlParams.get("room") || "").trim();
   const PATIENT_SCOPE = PATIENT_ID || "default";
+  const OPEN_PANELS_KEY = storageKey("pt_open_panels");
   function storageKey(suffix){
     return `ed_orderset_${PATIENT_SCOPE}_${suffix}`;
   }
@@ -995,6 +996,21 @@
       storageKey("pt_"),
       storageKey("opt_time_")
     ];
+  }
+  function getOpenPanels(){
+    try{
+      const raw = localStorage.getItem(OPEN_PANELS_KEY) || "[]";
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) return new Set();
+      return new Set(parsed.map(x => String(x)));
+    }catch(e){
+      return new Set();
+    }
+  }
+  function saveOpenPanels(set){
+    try{
+      localStorage.setItem(OPEN_PANELS_KEY, JSON.stringify([...set]));
+    }catch(e){}
   }
   const firebaseConfig = {
     apiKey: "AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",
@@ -1047,12 +1063,18 @@
   async function saveScopedStateToFirestore(){
     if(!checklistDocRef) return;
     try{
+      const state = collectScopedState();
+      const hasSelections = Object.entries(state).some(([k, v]) => {
+        return k.startsWith(storageKey("chk_")) && v === "1";
+      });
       await checklistDocRef.set({
         patientId: PATIENT_ID,
         room: ROOM_KEY,
         patientName: (document.getElementById("ptName")?.value || "").trim(),
+        hasSelections,
+        markedDone: hasSelections,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        state: collectScopedState()
+        state
       }, { merge: true });
     }catch(e){
       console.error("Firestore save failed", e);
@@ -1125,7 +1147,10 @@
     if(ptAge) ptAge.addEventListener("input", () => localStorage.setItem(PT_KEYS.age, String(ptAge.value || "").trim()));
     if(ptSex) ptSex.addEventListener("change", () => localStorage.setItem(PT_KEYS.sex, ptSex.value));
     if(ptAdmit) ptAdmit.addEventListener("change", () => localStorage.setItem(PT_KEYS.admit, ptAdmit.value));
-    if(ptTransferDept) ptTransferDept.addEventListener("change", () => localStorage.setItem(PT_KEYS.transferDept, ptTransferDept.value || ""));
+    if(ptTransferDept){
+      ptTransferDept.addEventListener("change", () => localStorage.setItem(PT_KEYS.transferDept, ptTransferDept.value || ""));
+      ptTransferDept.addEventListener("input", () => localStorage.setItem(PT_KEYS.transferDept, ptTransferDept.value || ""));
+    }
   }
   function applyIncomingPatientContext(){
     let incomingName = (urlParams.get("name") || "").trim();
@@ -1289,8 +1314,8 @@ const groups = new Map(); // boxTitle -> array of strings
         try{ orderer = (localStorage.getItem(storageKey("orderer_" + cb.id)) || "").trim(); }catch(e){}
       }
 
-      const sel = cb.closest(".chk")?.querySelector(`select[data-orderer-spec-for="${cb.id}"]`);
-      let spec = sel ? (sel.value || "").trim() : "";
+      const specInput = cb.closest(".chk")?.querySelector(`input[data-orderer-spec-for="${cb.id}"]`);
+      let spec = specInput ? (specInput.value || "").trim() : "";
       if(!spec){
         try{ spec = (localStorage.getItem(storageKey("orderer_spec_" + cb.id)) || "").trim(); }catch(e){}
       }
@@ -1564,11 +1589,10 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
   function getDeptOptions(){
     const out = [];
     try{
-      const sel = document.getElementById("ptTransferDept");
-      if(sel && sel.options){
-        [...sel.options].forEach((o, i) => {
-          if(i === 0) return; // placeholder
-          const v = String(o.value || o.textContent || "").trim();
+      const list = document.getElementById("deptOptions");
+      if(list){
+        [...list.options].forEach(o => {
+          const v = String(o.value || "").trim();
           if(v) out.push(v);
         });
       }
@@ -1621,8 +1645,8 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
       }
 
       // orderer specialty
-      const sel = cb.closest(".chk")?.querySelector(`select[data-orderer-spec-for="${cb.id}"]`);
-      let spec = sel ? (sel.value || "").trim() : "";
+      const specInput = cb.closest(".chk")?.querySelector(`input[data-orderer-spec-for="${cb.id}"]`);
+      let spec = specInput ? (specInput.value || "").trim() : "";
       if(!spec){
         try{ spec = (localStorage.getItem(storageKey("orderer_spec_" + cb.id)) || "").trim(); }catch(e){}
       }
@@ -1722,33 +1746,24 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
         s2.className = "orderer-label";
         s2.textContent = "სპეციალობა";
 
-        const sel = document.createElement("select");
-        sel.className = "mini ordererSpecSelect";
-        sel.setAttribute("data-orderer-spec-for", cb.id);
-
-        const o0 = document.createElement("option");
-        o0.value = "";
-        o0.textContent = "აირჩიეთ სპეციალობა";
-        sel.appendChild(o0);
-
-        getDeptOptions().forEach(v => {
-          const o = document.createElement("option");
-          o.value = v;
-          o.textContent = v;
-          sel.appendChild(o);
-        });
+        const specInput = document.createElement("input");
+        specInput.type = "text";
+        specInput.className = "mini ordererSpecInput";
+        specInput.placeholder = "აირჩიეთ სპეციალობა";
+        specInput.setAttribute("list", "deptOptions");
+        specInput.setAttribute("data-orderer-spec-for", cb.id);
 
         const specKey = storageKey("orderer_spec_" + cb.id);
-        sel.value = localStorage.getItem(specKey) || "";
-        sel.addEventListener("change", () => {
-          localStorage.setItem(specKey, sel.value);
+        specInput.value = localStorage.getItem(specKey) || "";
+        specInput.addEventListener("input", () => {
+          localStorage.setItem(specKey, specInput.value);
           updateOptionalTableForParentKey(parentKey);
         });
 
         ordererWrap.appendChild(s1);
         ordererWrap.appendChild(inp);
         ordererWrap.appendChild(s2);
-        ordererWrap.appendChild(sel);
+        ordererWrap.appendChild(specInput);
 
         ordererWrap.style.display = cb.checked ? "flex" : "none";
         body.appendChild(ordererWrap);
@@ -1776,6 +1791,7 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
 
   function render(){
     const needle = (q.value || "").trim().toLowerCase();
+    const openPanels = getOpenPanels();
     list.innerHTML = "";
     dataSorted
       .filter(d => !needle || d.title.toLowerCase().includes(needle) || (d.tag||"").toLowerCase().includes(needle))
@@ -1787,7 +1803,15 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
         const btn = document.createElement("button");
         btn.type = "button";
         btn.innerHTML = `<span>${d.title}</span><span class="tag">${d.tag || "გახსენით ჩამონათვალი"}</span>`;
-        btn.addEventListener("click", () => { item.classList.toggle("open"); ACTIVE_KEY = d.key; });
+        btn.addEventListener("click", () => {
+          item.classList.toggle("open");
+          if(item.classList.contains("open")) openPanels.add(d.key);
+          else openPanels.delete(d.key);
+          saveOpenPanels(openPanels);
+          ACTIVE_KEY = d.key;
+          scheduleFirestoreSync();
+        });
+        if(openPanels.has(d.key)) item.classList.add("open");
 
         const panel = document.createElement("div");
         panel.className = "panel";
@@ -1848,14 +1872,14 @@ function optTimeKey(id){ return storageKey("opt_time_" + id); }
         panel.addEventListener("change", (ev) => {
           const t = ev.target;
           if(!t) return;
-          if(t.matches('input[type="checkbox"][data-persist="1"]') || t.matches("select.ordererSpecSelect")){
+          if(t.matches('input[type="checkbox"][data-persist="1"]') || t.matches("input.ordererSpecInput")){
             updateOptionalTable(item);
           }
         });
         panel.addEventListener("input", (ev) => {
           const t = ev.target;
           if(!t) return;
-          if(t.matches("input.ordererInput")){
+          if(t.matches("input.ordererInput") || t.matches("input.ordererSpecInput")){
             updateOptionalTable(item);
           }
         });
@@ -1869,10 +1893,15 @@ list.appendChild(item);
 
   q.addEventListener("input", render);
 document.getElementById("expandAll").addEventListener("click", () => {
+    const openPanels = new Set(dataSorted.map(x => x.key));
+    saveOpenPanels(openPanels);
     [...document.querySelectorAll(".item")].forEach(x => x.classList.add("open"));
+    scheduleFirestoreSync();
   });
   document.getElementById("collapseAll").addEventListener("click", () => {
+    saveOpenPanels(new Set());
     [...document.querySelectorAll(".item")].forEach(x => x.classList.remove("open"));
+    scheduleFirestoreSync();
   });
   document.getElementById("resetChecks").addEventListener("click", () => {
     // Clear all persisted values for this app (patient fields, checkboxes, orderer/spec, optional selection times)
@@ -1906,8 +1935,9 @@ document.getElementById("expandAll").addEventListener("click", () => {
 
     document.querySelectorAll('input[type="checkbox"][data-persist="1"]').forEach(cb => cb.checked = false);
     document.querySelectorAll(".ordererInput").forEach(inp => inp.value = "");
-    document.querySelectorAll(".ordererSpecSelect").forEach(sel => sel.value = "");
+    document.querySelectorAll(".ordererSpecInput").forEach(inp => inp.value = "");
     document.querySelectorAll(".orderer-wrap").forEach(w => w.style.display = "none");
+    saveOpenPanels(new Set());
 
     try{ ACTIVE_KEY = null; }catch(e){}
     try{ refreshAllOptionalTables(); }catch(e){}
@@ -1981,6 +2011,11 @@ document.getElementById("expandAll").addEventListener("click", () => {
 
   if(ptTransferDept){
     ptTransferDept.addEventListener("change", () => {
+      try{ localStorage.setItem(PT_KEYS.transferDept, ptTransferDept.value || ""); }catch(e){}
+      refreshAllOptionalTables();
+      scheduleFirestoreSync();
+    });
+    ptTransferDept.addEventListener("input", () => {
       try{ localStorage.setItem(PT_KEYS.transferDept, ptTransferDept.value || ""); }catch(e){}
       refreshAllOptionalTables();
       scheduleFirestoreSync();

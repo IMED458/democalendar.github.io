@@ -23,6 +23,7 @@
       serverTimestamp,
       query,
       orderBy,
+      where,
       getDocs
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     const firebaseConfig = {
@@ -38,6 +39,31 @@
     let currentCollection = null;
     let patients = [];
     let editingId = null;
+    let checklistMetaByPatient = {};
+    let checklistUnsubscribe = null;
+    function isChecklistFilled(patientId) {
+      const meta = checklistMetaByPatient[patientId];
+      return Boolean(meta?.hasSelections || meta?.markedDone);
+    }
+    function subscribeChecklistStatus() {
+      if (checklistUnsubscribe) checklistUnsubscribe();
+      checklistMetaByPatient = {};
+      if (!currentCollection?.id) return;
+      const statusQuery = query(
+        collection(db, 'patient_checklists'),
+        where('room', '==', currentCollection.id)
+      );
+      checklistUnsubscribe = onSnapshot(statusQuery, snap => {
+        const map = {};
+        snap.docs.forEach(d => {
+          const data = d.data() || {};
+          if (data.patientId) map[data.patientId] = data;
+        });
+        checklistMetaByPatient = map;
+        renderActive();
+        renderArchive();
+      });
+    }
     function toDateTimeLocalString(date = new Date()) {
       const pad = n => String(n).padStart(2, '0');
       return (
@@ -119,6 +145,7 @@
       document.getElementById('app-container').style.display = 'block';
       document.querySelector('.header h1').textContent =
         room === 'observation' ? 'ობსერვაციის დარბაზი' : 'შოკის დარბაზი';
+      subscribeChecklistStatus();
       loadPatients();
     };
     function loadPatients() {
@@ -173,6 +200,13 @@
               <button class="btn btn-delete" onclick="permanentlyDelete('${
                 p.id
               }')">🗑️</button>
+              <span class="btn btn-checkmark ${
+                isChecklistFilled(p.id) ? 'is-done' : ''
+              }" title="${
+                isChecklistFilled(p.id)
+                  ? 'ჩექლისთი შევსებულია'
+                  : 'ჩექლისთი ჯერ შევსებული არ არის'
+              }">${isChecklistFilled(p.id) ? '✅' : '☑️'}</span>
             </td>
           </tr>
         `
@@ -211,6 +245,13 @@
               <button class="btn btn-delete" onclick="permanentlyDelete('${
                 p.id
               }')">🗑️</button>
+              <span class="btn btn-checkmark ${
+                isChecklistFilled(p.id) ? 'is-done' : ''
+              }" title="${
+                isChecklistFilled(p.id)
+                  ? 'ჩექლისთი შევსებულია'
+                  : 'ჩექლისთი ჯერ შევსებული არ არის'
+              }">${isChecklistFilled(p.id) ? '✅' : '☑️'}</span>
             </td>
           </tr>
         `
@@ -552,6 +593,15 @@
     }
     .btn-delete {
       background: var(--danger);
+      color: white;
+    }
+    .btn-checkmark {
+      background: #cbd5e1;
+      color: #334155;
+      cursor: default;
+    }
+    .btn-checkmark.is-done {
+      background: #16a34a;
       color: white;
     }
     .search-filter input {
