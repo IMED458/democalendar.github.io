@@ -1072,7 +1072,6 @@
         room: ROOM_KEY,
         patientName: (document.getElementById("ptName")?.value || "").trim(),
         hasSelections,
-        markedDone: hasSelections,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         state
       }, { merge: true });

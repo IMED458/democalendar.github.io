@@ -16,6 +16,7 @@
       getFirestore,
       collection,
       addDoc,
+      setDoc,
       updateDoc,
       deleteDoc,
       doc,
@@ -41,9 +42,32 @@
     let editingId = null;
     let checklistMetaByPatient = {};
     let checklistUnsubscribe = null;
-    function isChecklistFilled(patientId) {
+    function isChecklistMarked(patientId) {
       const meta = checklistMetaByPatient[patientId];
-      return Boolean(meta?.hasSelections || meta?.markedDone);
+      return Boolean(meta?.manualDone);
+    }
+    window.toggleChecklistMark = async id => {
+      if (!currentCollection?.id) return;
+      const p = patients.find(x => x.id === id);
+      if (!p) return;
+      const current = checklistMetaByPatient[id] || {};
+      const next = !Boolean(current.manualDone);
+      try {
+        await setDoc(
+          doc(db, 'patient_checklists', `${currentCollection.id}_${id}`),
+          {
+            patientId: id,
+            room: currentCollection.id,
+            patientName: p.patient_name || '',
+            manualDone: next,
+            updatedAt: serverTimestamp()
+          },
+          { merge: true }
+        );
+        showToast(next ? 'ჩექლისთი მოინიშნა' : 'მონიშვნა მოიხსნა');
+      } catch (err) {
+        showToast('შეცდომა: ' + err.message, true);
+      }
     }
     function subscribeChecklistStatus() {
       if (checklistUnsubscribe) checklistUnsubscribe();
@@ -200,13 +224,15 @@
               <button class="btn btn-delete" onclick="permanentlyDelete('${
                 p.id
               }')">🗑️</button>
-              <span class="btn btn-checkmark ${
-                isChecklistFilled(p.id) ? 'is-done' : ''
+              <button class="btn btn-checkmark ${
+                isChecklistMarked(p.id) ? 'is-done' : ''
               }" title="${
-                isChecklistFilled(p.id)
-                  ? 'ჩექლისთი შევსებულია'
-                  : 'ჩექლისთი ჯერ შევსებული არ არის'
-              }">${isChecklistFilled(p.id) ? '✅' : '☑️'}</span>
+                isChecklistMarked(p.id)
+                  ? 'მონიშნულია - დააჭირეთ მოსახსნელად'
+                  : 'არ არის მონიშნული - დააჭირეთ მოსანიშნად'
+              }" onclick="toggleChecklistMark('${p.id}')">${
+                isChecklistMarked(p.id) ? '✅' : '☑️'
+              }</button>
             </td>
           </tr>
         `
@@ -245,13 +271,15 @@
               <button class="btn btn-delete" onclick="permanentlyDelete('${
                 p.id
               }')">🗑️</button>
-              <span class="btn btn-checkmark ${
-                isChecklistFilled(p.id) ? 'is-done' : ''
+              <button class="btn btn-checkmark ${
+                isChecklistMarked(p.id) ? 'is-done' : ''
               }" title="${
-                isChecklistFilled(p.id)
-                  ? 'ჩექლისთი შევსებულია'
-                  : 'ჩექლისთი ჯერ შევსებული არ არის'
-              }">${isChecklistFilled(p.id) ? '✅' : '☑️'}</span>
+                isChecklistMarked(p.id)
+                  ? 'მონიშნულია - დააჭირეთ მოსახსნელად'
+                  : 'არ არის მონიშნული - დააჭირეთ მოსანიშნად'
+              }" onclick="toggleChecklistMark('${p.id}')">${
+                isChecklistMarked(p.id) ? '✅' : '☑️'
+              }</button>
             </td>
           </tr>
         `
@@ -598,7 +626,7 @@
     .btn-checkmark {
       background: #cbd5e1;
       color: #334155;
-      cursor: default;
+      cursor: pointer;
     }
     .btn-checkmark.is-done {
       background: #16a34a;
