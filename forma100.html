@@ -16,30 +16,44 @@ body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;}
 .topbar .sub{font-size:.76rem;opacity:.7;font-style:italic;}
 .pbadge{margin-left:auto;font-size:.8rem;line-height:1.6;text-align:right;}
 .pbadge strong{font-size:.92rem;display:block;}
-.wrap{max-width:860px;margin:0 auto;padding:20px 24px 80px;}
-.doc-header{text-align:center;margin-bottom:18px;line-height:1.6;}
-.doc-header .ministry{font-size:.73rem;color:#555;margin-bottom:6px;}
+.wrap{max-width:860px;margin:0 auto;padding:16px 24px 80px;}
+.doc-header{text-align:center;margin-bottom:14px;line-height:1.6;}
+.doc-header .ministry{font-size:.72rem;color:#555;margin-bottom:5px;}
 .doc-header h2{font-size:1.05rem;font-weight:700;letter-spacing:.5px;margin-bottom:2px;}
 .doc-header h3{font-size:1rem;font-weight:700;letter-spacing:3px;margin-bottom:2px;}
-.doc-header .subtitle{font-size:.85rem;color:#333;margin-bottom:4px;}
-.row{margin-bottom:10px;}
-.row-label{font-size:.78rem;font-weight:600;color:#333;margin-bottom:3px;}
-.row-num{font-size:.75rem;color:#888;margin-right:4px;}
-input.f,textarea.f{border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;background:transparent;padding:3px 2px;color:#111;width:100%;transition:border-color .2s;}
+.doc-header .sub2{font-size:.85rem;color:#333;}
+.divider{border:none;border-top:1px solid #ddd;margin:10px 0;}
+
+/* collapsible row */
+.row{margin-bottom:4px;}
+.row-label{
+  font-size:.8rem;font-weight:700;color:#111;
+  padding:5px 0 3px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #e5e7eb;user-select:none;
+}
+.row-label .rn{font-size:.73rem;color:#999;margin-right:4px;font-weight:400;}
+.row-label .arr{font-size:.68rem;color:#aaa;transition:transform .18s;flex-shrink:0;}
+.row-body{overflow:hidden;max-height:0;transition:max-height .22s ease;}
+.row.open .row-body{max-height:1200px;}
+.row.open .arr{transform:rotate(180deg);}
+.row.has-content .row-body{max-height:1200px;}
+
+/* fields */
+input.f,textarea.f{border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;background:transparent;padding:5px 2px 3px;color:#111;width:100%;transition:border-color .2s;}
 input.f:focus,textarea.f:focus{border-bottom-color:#111;}
-textarea.f{resize:vertical;min-height:50px;line-height:1.6;}
+textarea.f{resize:none;overflow:hidden;line-height:1.6;min-height:0;height:auto;display:block;}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 @media(max-width:560px){.two{grid-template-columns:1fr;}}
-.dates-block{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dates-block{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 0 2px;}
 @media(max-width:560px){.dates-block{grid-template-columns:1fr;}}
 .date-row{display:flex;flex-direction:column;gap:2px;}
-.date-row .dl{font-size:.76rem;color:#555;font-weight:600;}
+.date-row .dl{font-size:.74rem;color:#666;font-weight:600;margin-top:4px;}
 input.df{border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.84rem;background:transparent;padding:3px 2px;color:#111;transition:border-color .2s;width:100%;}
 input.df:focus{border-bottom-color:#111;}
-.divider{border:none;border-top:1px solid #ddd;margin:14px 0;}
 
-/* ICD search – same as emergency */
-.icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:4px;}
+/* ICD */
+.icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:8px 0 2px;}
 .icd-code-wrap{position:relative;width:110px;flex-shrink:0;}
 input.ic{width:100%;border:none;border-bottom:1.5px solid #bbb;outline:none;font-family:inherit;font-size:.88rem;padding:3px 2px;background:transparent;color:#1d4ed8;font-weight:700;text-transform:uppercase;transition:border-color .2s;}
 input.ic:focus{border-bottom-color:#1d4ed8;}
@@ -56,37 +70,34 @@ input.in:focus{border-bottom-color:#111;}
 .icd-opt .oc{font-size:.76rem;font-weight:700;color:#1d4ed8;min-width:52px;flex-shrink:0;}
 .icd-opt .on{font-size:.83rem;color:#111;line-height:1.3;}
 .no-res{padding:8px 10px;color:#9ca3af;font-size:.83rem;}
-
-.diag-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.diag-list{display:flex;flex-direction:column;gap:3px;padding-bottom:4px;}
 .di{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px solid #f0f0f0;}
 .di .code{font-size:.76rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:3px;padding:1px 5px;white-space:nowrap;}
 .di .name{flex:1;font-size:.86rem;}
 .di .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:.9rem;padding:0 2px;}
 .di .rm:hover{color:#dc2626;}
+.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:2px 7px;margin:4px 0 2px;font-weight:600;}
 
-/* sync badge */
-.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:3px 8px;margin-bottom:8px;}
-.sync-badge.warn{background:#fffbeb;border-color:#fde68a;color:#92400e;}
-
-.dr-row{display:flex;align-items:center;gap:8px;}
+.dr-row{display:flex;align-items:center;gap:8px;padding:6px 0 3px;}
 .dr-row label{font-size:.8rem;font-weight:600;white-space:nowrap;}
 input.dri{flex:1;max-width:300px;border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;padding:3px 2px;background:transparent;}
 input.dri:focus{border-bottom-color:#111;}
-.sign-line{display:flex;align-items:flex-end;gap:12px;margin-top:14px;flex-wrap:wrap;}
-.sign-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:160px;}
-.sign-item .sl{font-size:.75rem;color:#555;}
-.sign-item .sb{border-bottom:1px solid #888;height:22px;}
-.actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-top:1px solid #e5e7eb;padding:10px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;z-index:50;}
-.btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:9px 24px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;}
+.sign-line{display:flex;align-items:flex-end;gap:12px;margin-top:10px;flex-wrap:wrap;}
+.sign-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px;}
+.sign-item .sl{font-size:.73rem;color:#555;}
+.sign-item .sb{border-bottom:1px solid #888;height:20px;}
+
+.actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-top:1px solid #e5e7eb;padding:9px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;z-index:50;}
+.btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn-save:hover{background:#333;}
-.btn-print{background:#fff;color:#111;border:1.5px solid #ccc;border-radius:6px;padding:9px 18px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-print{background:#fff;color:#111;border:1.5px solid #ccc;border-radius:6px;padding:8px 18px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;}
 .btn-print:hover{background:#f9fafb;}
 .save-ok{font-size:.82rem;color:#15803d;font-weight:600;opacity:0;transition:opacity .3s;}
 .save-ok.show{opacity:1;}
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);background:#111;color:#fff;padding:8px 22px;border-radius:8px;font-size:.88rem;opacity:0;transition:all .3s;pointer-events:none;z-index:999;}
+.toast{position:fixed;bottom:65px;left:50%;transform:translateX(-50%) translateY(10px);background:#111;color:#fff;padding:8px 22px;border-radius:8px;font-size:.88rem;opacity:0;transition:all .3s;pointer-events:none;z-index:999;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.err{background:#dc2626;}
-@media print{.actions,.add-btn,.di .rm,.topbar,.sync-badge{display:none!important;}body{font-size:12px;}}
+@media print{.actions,.add-btn,.di .rm,.arr,.sync-badge{display:none!important;}.row-body{max-height:none!important;}body{font-size:12px;}}
 </style>
 </head>
 <body>
@@ -100,114 +111,129 @@ input.dri:focus{border-bottom-color:#111;}
     <div class="ministry">დანართი № 2 — საქართველოს შრომის, ჯანმრთელობისა და სოციალური დაცვის მინისტრის 2007 წ. 9 აგვისტოს №338/ნ ბრძანებით</div>
     <h2>სამედიცინო დოკუმენტაციის ფორმა № IV-100/ა</h2>
     <h3>ც ნ ო ბ ა</h3>
-    <div class="subtitle">ჯანმრთელობის მდგომარეობის შესახებ</div>
+    <div class="sub2">ჯანმრთელობის მდგომარეობის შესახებ</div>
   </div>
   <hr class="divider"/>
 
-  <div class="row">
-    <div class="row-label"><span class="row-num">1.</span>ცნობის გამცემი დაწესებულების დასახელება და მისამართი:</div>
-    <input class="f" id="f1" type="text" value="თბილისის სახელმწიფო სამედიცინო უნივერსიტეტისა და ინგოროყვას მაღალი სამედიცინო ტექნოლოგიების საუნივერსიტეტო კლინიკა"/>
+  <!-- 1 -->
+  <div class="row open has-content" id="r1">
+    <div class="row-label" onclick="tog('r1')"><span><span class="rn">1.</span>ცნობის გამცემი დაწესებულება:</span><span class="arr">▼</span></div>
+    <div class="row-body"><input class="f" id="f1" type="text" value="თბილისის სახელმწიფო სამედიცინო უნივერსიტეტისა და ინგოროყვას მაღალი სამედიცინო ტექნოლოგიების საუნივერსიტეტო კლინიკა"/></div>
   </div>
-  <div class="row">
-    <div class="row-label"><span class="row-num">2.</span>დაწესებულების დასახელება, მისამართი სადაც იგზავნება ცნობა:</div>
-    <input class="f" id="f2" type="text" placeholder="..."/>
+  <!-- 2 -->
+  <div class="row" id="r2">
+    <div class="row-label" onclick="tog('r2')"><span><span class="rn">2.</span>ცნობა იგზავნება:</span><span class="arr">▼</span></div>
+    <div class="row-body"><input class="f" id="f2" type="text" placeholder="დაწესებულების დასახელება, მისამართი..."/></div>
   </div>
-  <div class="two">
-    <div class="row"><div class="row-label"><span class="row-num">3.</span>პაციენტი:</div><input class="f" id="f3" type="text"/></div>
-    <div class="row"><div class="row-label"><span class="row-num">5.</span>პირადი ნომერი:</div><input class="f" id="f5" type="text" maxlength="11"/></div>
-  </div>
-  <div class="two">
-    <div class="row">
-      <div class="row-label"><span class="row-num">4.</span>დაბადების თარიღი: <span id="f4-age" style="color:#1d4ed8;font-weight:700;font-size:.8rem;"></span></div>
-      <input class="f" id="f4" type="text" placeholder="YYYY-MM-DD"/>
+
+  <!-- 3-6 patient data — always open (auto-filled) -->
+  <div class="row open has-content" id="r36">
+    <div class="row-label" onclick="tog('r36')"><span>პაციენტის მონაცემები (3–6)</span><span class="arr">▼</span></div>
+    <div class="row-body">
+      <div class="two" style="padding-top:6px;">
+        <div>
+          <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">3.</span>პაციენტი:</div>
+          <input class="f" id="f3" type="text"/>
+        </div>
+        <div>
+          <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">5.</span>პირადი ნომერი:</div>
+          <input class="f" id="f5" type="text" maxlength="11"/>
+        </div>
+      </div>
+      <div class="two" style="margin-top:6px;">
+        <div>
+          <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">4.</span>დაბადების თარიღი: <span id="f4-age" style="color:#1d4ed8;font-weight:700;"></span></div>
+          <input class="f" id="f4" type="text" placeholder="YYYY-MM-DD"/>
+        </div>
+        <div>
+          <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">6.</span>მისამართი:</div>
+          <input class="f" id="f6" type="text"/>
+        </div>
+      </div>
     </div>
-    <div class="row"><div class="row-label"><span class="row-num">6.</span>მისამართი:</div><input class="f" id="f6" type="text"/></div>
   </div>
-  <div class="row">
-    <div class="row-label"><span class="row-num">7.</span>სამუშაო ადგილი და თანამდებობა:</div>
-    <input class="f" id="f7" type="text" placeholder="..."/>
+
+  <!-- 7 -->
+  <div class="row" id="r7">
+    <div class="row-label" onclick="tog('r7')"><span><span class="rn">7.</span>სამუშაო ადგილი / სასწავლო დაწესებულება:</span><span class="arr">▼</span></div>
+    <div class="row-body"><input class="f" id="f7" type="text" placeholder="..."/></div>
   </div>
-  <div class="row">
-    <div class="row-label"><span class="row-num">8.</span>თარიღები:</div>
-    <div class="dates-block" style="margin-top:6px;">
-      <div class="date-row"><div class="dl">ა) ამბულატორიაში მიმართვის:</div><input class="df" id="f8a" type="text" placeholder="—"/></div>
-      <div class="date-row"><div class="dl">ბ) სტაციონარში გაგზავნის:</div><input class="df" id="f8b" type="text" placeholder="—"/></div>
-      <div class="date-row"><div class="dl">გ) სტაციონარში მოთავსების:</div><input class="df" id="f8c" type="text" placeholder="—"/></div>
-      <div class="date-row"><div class="dl">დ) გაწერის:</div><input class="df" id="f8d" type="text" placeholder="—"/></div>
+
+  <!-- 8 dates -->
+  <div class="row open has-content" id="r8">
+    <div class="row-label" onclick="tog('r8')"><span><span class="rn">8.</span>თარიღები:</span><span class="arr">▼</span></div>
+    <div class="row-body">
+      <div class="dates-block">
+        <div class="date-row"><div class="dl">ა) ამბულატორიაში მიმართვის:</div><input class="df" id="f8a" type="text" placeholder="—"/></div>
+        <div class="date-row"><div class="dl">ბ) სტაციონარში გაგზავნის:</div><input class="df" id="f8b" type="text" placeholder="—"/></div>
+        <div class="date-row"><div class="dl">გ) სტაციონარში მოთავსების:</div><input class="df" id="f8c" type="text" placeholder="—"/></div>
+        <div class="date-row"><div class="dl">დ) გაწერის:</div><input class="df" id="f8d" type="text" placeholder="—"/></div>
+      </div>
     </div>
   </div>
+
   <hr class="divider"/>
 
-  <!-- 9. დიაგნოზი -->
-  <div class="row">
-    <div class="row-label"><span class="row-num">9.</span>დასკვნა / სრული დიაგნოზი:</div>
-
-    <!-- MAIN diagnoses – synced from emergency sheet -->
-    <div style="margin-top:8px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-        <span style="font-size:.78rem;font-weight:600;color:#444;">ძირითადი დაავადება(ები):</span>
+  <!-- 9 diagnosis -->
+  <div class="row open has-content" id="r9">
+    <div class="row-label" onclick="tog('r9')"><span><span class="rn">9.</span>სრული დიაგნოზი:</span><span class="arr">▼</span></div>
+    <div class="row-body">
+      <!-- main diagnoses synced from emergency -->
+      <div style="margin-top:6px;">
+        <div style="font-size:.76rem;font-weight:700;color:#333;margin-bottom:2px;">ძირითადი დაავადება(ები):</div>
         <span class="sync-badge" id="sync-badge">⟳ სინქრონიზდება გასინჯვის ფურცელთან</span>
+        <div class="diag-list" id="diag-main-list"></div>
+        <div class="icd-inputs">
+          <div class="icd-code-wrap"><input type="text" class="ic" id="mc" placeholder="კოდი" maxlength="10" autocomplete="off" oninput="onCI('mc','mn','dd-mc')" onkeydown="onCK(event,'mc','mn','dd-mc','main')"/><div class="icd-dd" id="dd-mc"></div></div>
+          <div class="icd-name-wrap"><input type="text" class="in" id="mn" placeholder="დასახელება..." autocomplete="off" oninput="onNI('mn','dd-mn','main')" onkeydown="onNK(event,'mn','dd-mn','main')"/><div class="icd-dd" id="dd-mn"></div></div>
+          <button class="add-btn" onclick="addDiag('main')">+ დამატება</button>
+        </div>
       </div>
-      <div class="diag-list" id="diag-main-list"></div>
-      <!-- manual add for main -->
-      <div class="icd-inputs" style="margin-top:8px;">
-        <div class="icd-code-wrap">
-          <input type="text" class="ic" id="mc" placeholder="კოდი" maxlength="10" autocomplete="off"
-            oninput="onCI('mc','mn','dd-mc')" onkeydown="onCK(event,'mc','mn','dd-mc','main')"/>
-          <div class="icd-dd" id="dd-mc"></div>
+      <!-- secondary -->
+      <div style="margin-top:10px;">
+        <div style="font-size:.76rem;font-weight:700;color:#333;margin-bottom:4px;">თანმხლები დაავადება(ები):</div>
+        <div class="diag-list" id="diag-sec-list"></div>
+        <div class="icd-inputs">
+          <div class="icd-code-wrap"><input type="text" class="ic" id="sc" placeholder="კოდი" maxlength="10" autocomplete="off" oninput="onCI('sc','sn','dd-sc')" onkeydown="onCK(event,'sc','sn','dd-sc','sec')"/><div class="icd-dd" id="dd-sc"></div></div>
+          <div class="icd-name-wrap"><input type="text" class="in" id="sn" placeholder="დასახელება..." autocomplete="off" oninput="onNI('sn','dd-sn','sec')" onkeydown="onNK(event,'sn','dd-sn','sec')"/><div class="icd-dd" id="dd-sn"></div></div>
+          <button class="add-btn" onclick="addDiag('sec')">+ დამატება</button>
         </div>
-        <div class="icd-name-wrap">
-          <input type="text" class="in" id="mn" placeholder="დასახელება..." autocomplete="off"
-            oninput="onNI('mn','dd-mn','main')" onkeydown="onNK(event,'mn','dd-mn','main')"/>
-          <div class="icd-dd" id="dd-mn"></div>
-        </div>
-        <button class="add-btn" onclick="addDiag('main')">+ დამატება</button>
-      </div>
-    </div>
-
-    <!-- SECONDARY diagnoses -->
-    <div style="margin-top:14px;">
-      <div style="font-size:.78rem;font-weight:600;color:#444;margin-bottom:4px;">თანმხლები დაავადება(ები):</div>
-      <div class="diag-list" id="diag-sec-list"></div>
-      <div class="icd-inputs" style="margin-top:8px;">
-        <div class="icd-code-wrap">
-          <input type="text" class="ic" id="sc" placeholder="კოდი" maxlength="10" autocomplete="off"
-            oninput="onCI('sc','sn','dd-sc')" onkeydown="onCK(event,'sc','sn','dd-sc','sec')"/>
-          <div class="icd-dd" id="dd-sc"></div>
-        </div>
-        <div class="icd-name-wrap">
-          <input type="text" class="in" id="sn" placeholder="დასახელება..." autocomplete="off"
-            oninput="onNI('sn','dd-sn','sec')" onkeydown="onNK(event,'sn','dd-sn','sec')"/>
-          <div class="icd-dd" id="dd-sn"></div>
-        </div>
-        <button class="add-btn" onclick="addDiag('sec')">+ დამატება</button>
       </div>
     </div>
   </div>
 
   <hr class="divider"/>
 
-  <div class="row"><div class="row-label"><span class="row-num">10.</span>გადატანილი დაავადებები:</div><textarea class="f" id="f10" rows="2" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">11.</span>მოკლე ანამნეზი:</div><textarea class="f" id="f11" rows="4" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">12.</span>ჩატარებული დიაგნოსტიკური გამოკვლევები და კონსულტაციები:</div><textarea class="f" id="f12" rows="4" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">13.</span>ავადმყოფობის მიმდინარეობა:</div><textarea class="f" id="f13" rows="5" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">14.</span>ჩატარებული მკურნალობა:</div><textarea class="f" id="f14" rows="4" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">15.</span>მდგომარეობა სტაციონარში გაგზავნისას:</div><textarea class="f" id="f15" rows="3" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">16.</span>მდგომარეობა სტაციონარიდან გაწერისას:</div><textarea class="f" id="f16" rows="3" placeholder="..."></textarea></div>
-  <div class="row"><div class="row-label"><span class="row-num">17.</span>სამკურნალო და შრომითი რეკომენდაციები:</div><textarea class="f" id="f17" rows="3" placeholder="..."></textarea></div>
+  <!-- text fields 10-17 -->
+  <div class="row" id="r10"><div class="row-label" onclick="tog('r10')"><span><span class="rn">10.</span>გადატანილი დაავადებები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f10" placeholder="..."></textarea></div></div>
+  <div class="row" id="r11"><div class="row-label" onclick="tog('r11')"><span><span class="rn">11.</span>მოკლე ანამნეზი:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f11" placeholder="..."></textarea></div></div>
+  <div class="row" id="r12"><div class="row-label" onclick="tog('r12')"><span><span class="rn">12.</span>ჩატარებული დიაგნოსტიკური გამოკვლევები და კონსულტაციები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f12" placeholder="..."></textarea></div></div>
+  <div class="row" id="r13"><div class="row-label" onclick="tog('r13')"><span><span class="rn">13.</span>ავადმყოფობის მიმდინარეობა:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f13" placeholder="..."></textarea></div></div>
+  <div class="row" id="r14"><div class="row-label" onclick="tog('r14')"><span><span class="rn">14.</span>ჩატარებული მკურნალობა:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f14" placeholder="..."></textarea></div></div>
+  <div class="row" id="r15"><div class="row-label" onclick="tog('r15')"><span><span class="rn">15.</span>მდგომარეობა სტაციონარში გაგზავნისას:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f15" placeholder="..."></textarea></div></div>
+  <div class="row" id="r16"><div class="row-label" onclick="tog('r16')"><span><span class="rn">16.</span>მდგომარეობა სტაციონარიდან გაწერისას:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f16" placeholder="..."></textarea></div></div>
+  <div class="row" id="r17"><div class="row-label" onclick="tog('r17')"><span><span class="rn">17.</span>სამკურნალო და შრომითი რეკომენდაციები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f17" placeholder="..."></textarea></div></div>
 
   <hr class="divider"/>
-  <div class="row">
-    <div class="row-label"><span class="row-num">18.</span>მკურნალი ექიმი:</div>
-    <div class="dr-row" style="margin-top:4px;"><label>ექიმი:</label><input type="text" class="dri" id="doctor" placeholder="სახელი გვარი"/></div>
+
+  <!-- 18 doctor -->
+  <div class="row open has-content" id="r18">
+    <div class="row-label" onclick="tog('r18')"><span><span class="rn">18.</span>მკურნალი ექიმი:</span><span class="arr">▼</span></div>
+    <div class="row-body">
+      <div class="dr-row"><label>ექიმი:</label><input type="text" class="dri" id="doctor" placeholder="სახელი გვარი"/></div>
+    </div>
   </div>
+
+  <!-- 19 signature -->
   <div class="sign-line">
     <div class="sign-item"><div class="sl">19. დაწესებულების ხელმძღვანელი / მოადგილე:</div><div class="sb"></div></div>
     <div class="sign-item"><div class="sl">ბეჭედი:</div><div class="sb"></div></div>
   </div>
-  <div class="row" style="margin-top:16px;">
-    <div class="row-label"><span class="row-num">20.</span>ცნობის გაცემის თარიღი:</div>
-    <input class="f" id="f20" type="text"/>
+
+  <!-- 20 date -->
+  <div class="row open has-content" id="r20" style="margin-top:12px;">
+    <div class="row-label" onclick="tog('r20')"><span><span class="rn">20.</span>ცნობის გაცემის თარიღი:</span><span class="arr">▼</span></div>
+    <div class="row-body"><input class="f" id="f20" type="text"/></div>
   </div>
 </div>
 
@@ -225,17 +251,18 @@ const db=firebase.firestore();
 
 const Prm=new URLSearchParams(location.search);
 function dec(k){return decodeURIComponent(Prm.get(k)||'');}
-const PID=Prm.get('pid')||'', ROOM=Prm.get('room')||'';
-const PNAME=dec('name'), BED=dec('bed'), HIST=dec('history');
-const PERSONAL_ID=dec('personal_id'), DOB=dec('dob'), ADDRESS=dec('address');
-const ADMIT_DT=dec('admit_dt'), DOCTOR_URL=dec('doctor');
+const PID=Prm.get('pid')||'',ROOM=Prm.get('room')||'';
+const PNAME=dec('name'),BED=dec('bed'),HIST=dec('history');
+const PERSONAL_ID=dec('personal_id'),DOB=dec('dob'),ADDRESS=dec('address');
+const ADMIT_DT=dec('admit_dt'),DOCTOR_URL=dec('doctor');
 
 function calcAge(d){if(!d)return'';const b=new Date(d);if(isNaN(b))return'';let a=new Date().getFullYear()-b.getFullYear();const m=new Date().getMonth()-b.getMonth();if(m<0||(m===0&&new Date().getDate()<b.getDate()))a--;return a>=0?a+' წ.':'';}
-function formatDt(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleString('ka-GE',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function formatDt(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleString('ka-GE',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});}
 function esc(t){if(!t)return'';const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3000);}
+function v(id){const el=document.getElementById(id);return el?el.value:'';}
 
-// fill auto fields
+// auto-fill patient fields
 document.getElementById('pb-name').textContent=PNAME||'პაციენტი';
 const inf=[];if(BED)inf.push('საწ. '+BED);if(HIST)inf.push('ისტ. '+HIST);if(ROOM)inf.push(ROOM);
 document.getElementById('pb-info').textContent=inf.join(' · ');
@@ -248,180 +275,154 @@ document.getElementById('f8c').value=ADMIT_DT?formatDt(ADMIT_DT):'';
 document.getElementById('doctor').value=DOCTOR_URL;
 document.getElementById('f20').value=new Date().toLocaleDateString('ka-GE',{day:'numeric',month:'long',year:'numeric'});
 
-// ── ICD10 search helpers ──────────────────────────────────────────────────────
-let ddAct={id:null, idx:-1};
+// ── section toggle ────────────────────────────────────────────────────────────
+window.tog=function(id){
+  const r=document.getElementById(id);
+  if(r.classList.contains('has-content'))return;
+  r.classList.toggle('open');
+};
+function autoResize(el){el.style.height='0';el.style.height=el.scrollHeight+'px';}
+document.querySelectorAll('textarea.auto').forEach(ta=>ta.addEventListener('input',()=>autoResize(ta)));
 
+// watch text fields for content → open & has-content
+const textFieldRows={f2:'r2',f7:'r7',f10:'r10',f11:'r11',f12:'r12',f13:'r13',f14:'r14',f15:'r15',f16:'r16',f17:'r17'};
+Object.entries(textFieldRows).forEach(([fid,rid])=>{
+  const el=document.getElementById(fid);
+  if(!el)return;
+  el.addEventListener('input',()=>{
+    if(el.value.trim())document.getElementById(rid).classList.add('open','has-content');
+    else document.getElementById(rid).classList.remove('has-content');
+    if(el.classList.contains('auto'))autoResize(el);
+  });
+  el.addEventListener('blur',saveData);
+});
+['f1','f4','f5','f6','f3','f8a','f8b','f8c','f8d','f20','doctor'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){el.addEventListener('blur',saveData);}
+});
+document.getElementById('f4').addEventListener('input',()=>{
+  const a=calcAge(document.getElementById('f4').value);
+  document.getElementById('f4-age').textContent=a?'('+a+')':'';
+});
+
+// ── ICD10 ─────────────────────────────────────────────────────────────────────
+let ddAct={id:null,idx:-1};
 function searchIcd(q,max=25){
-  if(!q||q.length<1)return[];
-  const up=q.toUpperCase().trim();
-  const res=[];
-  for(const [code,name] of Object.entries(ICD10_KA)){
-    if(res.length>=max)break;
-    if(code.startsWith(up)||name.toLowerCase().includes(q.toLowerCase()))
-      res.push({code,name});
-  }
+  if(!q)return[];const up=q.toUpperCase().trim();const res=[];
+  for(const[code,name]of Object.entries(ICD10_KA)){if(res.length>=max)break;if(code.startsWith(up)||name.toLowerCase().includes(q.toLowerCase()))res.push({code,name});}
   return res;
 }
-
-function renderDd(ddId, items, codeId, nameId){
-  const dd=document.getElementById(ddId);
-  ddAct={id:ddId,idx:-1};
+function renderDd(ddId,items,codeId,nameId){
+  const dd=document.getElementById(ddId);ddAct={id:ddId,idx:-1};
   if(!items.length){dd.innerHTML=`<div class="no-res">ვერ მოიძებნა</div>`;dd.classList.add('open');dd._items=[];return;}
-  dd.innerHTML=items.map((it,i)=>
-    `<div class="icd-opt" data-i="${i}" onmousedown="event.preventDefault()"
-      onclick="pickOpt('${ddId}','${codeId}','${nameId}',${i})">
-      <span class="oc">${esc(it.code)}</span>
-      <span class="on">${esc(it.name.length>65?it.name.slice(0,65)+'…':it.name)}</span>
-    </div>`).join('');
-  dd.classList.add('open');
-  dd._items=items;
+  dd.innerHTML=items.map((it,i)=>`<div class="icd-opt" data-i="${i}" onmousedown="event.preventDefault()" onclick="pickOpt('${ddId}','${codeId}','${nameId}',${i})"><span class="oc">${esc(it.code)}</span><span class="on">${esc(it.name.length>65?it.name.slice(0,65)+'…':it.name)}</span></div>`).join('');
+  dd.classList.add('open');dd._items=items;
 }
-window.pickOpt=function(ddId,codeId,nameId,i){
-  const dd=document.getElementById(ddId);
-  const item=dd._items&&dd._items[i];
-  if(!item)return;
-  document.getElementById(codeId).value=item.code;
-  document.getElementById(nameId).value=item.name;
-  closeAllDd();
-};
-function closeAllDd(){
-  document.querySelectorAll('.icd-dd').forEach(d=>d.classList.remove('open'));
-  ddAct={id:null,idx:-1};
-}
+window.pickOpt=function(ddId,codeId,nameId,i){const dd=document.getElementById(ddId);const it=dd._items&&dd._items[i];if(!it)return;document.getElementById(codeId).value=it.code;document.getElementById(nameId).value=it.name;closeAllDd();};
+function closeAllDd(){document.querySelectorAll('.icd-dd').forEach(d=>d.classList.remove('open'));ddAct={id:null,idx:-1};}
 document.addEventListener('click',e=>{if(!e.target.closest('.icd-code-wrap')&&!e.target.closest('.icd-name-wrap'))closeAllDd();});
-
-function handleDdKey(e,ddId,codeId,nameId,group,isName){
+function hdk(e,ddId,codeId,nameId){
   const dd=document.getElementById(ddId);
-  if(dd.classList.contains('open')&&dd._items&&dd._items.length){
-    const opts=dd.querySelectorAll('.icd-opt');
-    if(e.key==='ArrowDown'){e.preventDefault();ddAct.idx=Math.min(ddAct.idx+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});return;}
-    if(e.key==='ArrowUp'){e.preventDefault();ddAct.idx=Math.max(ddAct.idx-1,0);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});return;}
-    if(e.key==='Enter'&&ddAct.idx>=0){e.preventDefault();pickOpt(ddId,codeId,nameId,ddAct.idx);return;}
-    if(e.key==='Escape'){closeAllDd();return;}
-  }
+  if(!dd.classList.contains('open')||!dd._items||!dd._items.length)return;
+  const opts=dd.querySelectorAll('.icd-opt');
+  if(e.key==='ArrowDown'){e.preventDefault();ddAct.idx=Math.min(ddAct.idx+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='ArrowUp'){e.preventDefault();ddAct.idx=Math.max(ddAct.idx-1,0);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='Enter'&&ddAct.idx>=0){e.preventDefault();pickOpt(ddId,codeId,nameId,ddAct.idx);}
+  else if(e.key==='Escape'){closeAllDd();}
 }
-
-// code input handlers (generic)
 window.onCI=function(codeId,nameId,ddId){
-  const val=document.getElementById(codeId).value.trim();
-  const dd=document.getElementById(ddId);
+  const val=document.getElementById(codeId).value.trim(),dd=document.getElementById(ddId);
   if(!val){dd.classList.remove('open');return;}
   const up=val.toUpperCase();
   if(ICD10_KA[up]){document.getElementById(nameId).value=ICD10_KA[up];dd.classList.remove('open');return;}
-  renderDd(ddId, searchIcd(val,20), codeId, nameId);
+  renderDd(ddId,searchIcd(val,20),codeId,nameId);
 };
 window.onCK=function(e,codeId,nameId,ddId,group){
-  handleDdKey(e,ddId,codeId,nameId,group,false);
+  hdk(e,ddId,codeId,nameId);
   if(e.key==='Tab'){e.preventDefault();const up=document.getElementById(codeId).value.trim().toUpperCase();if(ICD10_KA[up])document.getElementById(nameId).value=ICD10_KA[up];document.getElementById(nameId).focus();}
   if(e.key==='Enter'&&ddAct.idx<0){e.preventDefault();addDiag(group);}
 };
 window.onNI=function(nameId,ddId,group){
-  const val=document.getElementById(nameId).value.trim();
-  const dd=document.getElementById(ddId);
+  const val=document.getElementById(nameId).value.trim(),dd=document.getElementById(ddId);
   if(val.length<2){dd.classList.remove('open');return;}
-  // determine codeId from group
   const codeId=group==='main'?'mc':'sc';
-  renderDd(ddId, searchIcd(val,25), codeId, nameId);
+  renderDd(ddId,searchIcd(val,25),codeId,nameId);
 };
 window.onNK=function(e,nameId,ddId,group){
   const codeId=group==='main'?'mc':'sc';
-  handleDdKey(e,ddId,codeId,nameId,group,true);
+  hdk(e,ddId,codeId,nameId);
   if(e.key==='Enter'&&ddAct.idx<0){e.preventDefault();addDiag(group);}
 };
 
-// ── Diagnoses ─────────────────────────────────────────────────────────────────
-let diagMain=[], diagSec=[];
-
-function renderList(arr, listId, rmFn){
-  document.getElementById(listId).innerHTML=arr.map((d,i)=>`
-    <div class="di">
-      ${d.code?`<span class="code">${esc(d.code)}</span>`:''}
-      <span class="name">${esc(d.name)}</span>
-      <button class="rm" onclick="${rmFn}(${i})">×</button>
-    </div>`).join('');
+let diagMain=[],diagSec=[];
+function renderList(arr,listId,rmFn){
+  document.getElementById(listId).innerHTML=arr.map((d,i)=>`<div class="di">${d.code?`<span class="code">${esc(d.code)}</span>`:''}<span class="name">${esc(d.name)}</span><button class="rm" onclick="${rmFn}(${i})">×</button></div>`).join('');
 }
-
 window.addDiag=function(group){
-  const codeId=group==='main'?'mc':'sc';
-  const nameId=group==='main'?'mn':'sn';
+  const codeId=group==='main'?'mc':'sc',nameId=group==='main'?'mn':'sn';
   const code=document.getElementById(codeId).value.trim().toUpperCase();
   const name=document.getElementById(nameId).value.trim()||(code&&ICD10_KA[code]?ICD10_KA[code]:'');
   if(!code&&!name)return;
   if(group==='main'){diagMain.push({code,name});renderList(diagMain,'diag-main-list','rmMain');}
   else{diagSec.push({code,name});renderList(diagSec,'diag-sec-list','rmSec');}
   document.getElementById(codeId).value='';document.getElementById(nameId).value='';
-  closeAllDd();document.getElementById(codeId).focus();
-  saveData();
+  closeAllDd();document.getElementById(codeId).focus();saveData();
 };
 window.rmMain=i=>{diagMain.splice(i,1);renderList(diagMain,'diag-main-list','rmMain');saveData();};
 window.rmSec=i=>{diagSec.splice(i,1);renderList(diagSec,'diag-sec-list','rmSec');saveData();};
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
-const EMERG_DOC = PID&&ROOM ? `${ROOM}_${PID}` : null;
-const F100_DOC  = PID&&ROOM ? `${ROOM}_${PID}_f100` : null;
-
+const EMERG_DOC=PID&&ROOM?`${ROOM}_${PID}`:null;
+const F100_DOC=PID&&ROOM?`${ROOM}_${PID}_f100`:null;
 let f100Loaded=false;
 
-// 1. Listen to emergency_sheets → sync diagnoses to diagMain
 if(EMERG_DOC){
   db.collection('emergency_sheets').doc(EMERG_DOC).onSnapshot(snap=>{
-    if(!snap.exists) return;
+    if(!snap.exists)return;
     const d=snap.data();
     if(Array.isArray(d.diagnoses)&&d.diagnoses.length){
-      diagMain=d.diagnoses;
-      renderList(diagMain,'diag-main-list','rmMain');
-      const badge=document.getElementById('sync-badge');
-      badge.textContent='✓ გასინჯვის ფურცლიდან სინქრონიზებულია';
-      badge.className='sync-badge';
+      diagMain=d.diagnoses;renderList(diagMain,'diag-main-list','rmMain');
+      const badge=document.getElementById('sync-badge');badge.textContent='✓ გასინჯვის ფურცლიდან სინქრონიზებულია';
     }
   });
 }
-
-// 2. Load saved f100 data
 if(F100_DOC){
   db.collection('forma100_sheets').doc(F100_DOC).onSnapshot(snap=>{
     if(!snap.exists||f100Loaded)return;
     f100Loaded=true;
     const d=snap.data();
-    ['f1','f2','f7','f8a','f8b','f8c','f8d','f10','f11','f12','f13','f14','f15','f16','f17','f20','doctor'].forEach(k=>{
-      if(d[k]!==undefined)document.getElementById(k).value=d[k];
-    });
-    ['f3','f4','f5','f6'].forEach(k=>{if(d[k])document.getElementById(k).value=d[k];});
+    const loadField=(id,rid)=>{
+      if(!d[id])return;
+      const el=document.getElementById(id);el.value=d[id];
+      if(rid){const r=document.getElementById(rid);r.classList.add('open','has-content');}
+      if(el.classList.contains('auto'))autoResize(el);
+    };
+    loadField('f1','r1');loadField('f2','r2');
+    loadField('f3',null);loadField('f4',null);loadField('f5',null);loadField('f6',null);
     if(d.f4){const a=calcAge(d.f4);if(a)document.getElementById('f4-age').textContent='('+a+')';}
-    // diagMain comes from emergency sync, but diagSec from saved
+    loadField('f7','r7');loadField('f8a',null);loadField('f8b',null);loadField('f8c',null);loadField('f8d',null);
+    loadField('f10','r10');loadField('f11','r11');loadField('f12','r12');loadField('f13','r13');
+    loadField('f14','r14');loadField('f15','r15');loadField('f16','r16');loadField('f17','r17');
+    loadField('f20','r20');loadField('doctor','r18');
     if(Array.isArray(d.diagSec)){diagSec=d.diagSec;renderList(diagSec,'diag-sec-list','rmSec');}
   });
 }
 
-document.getElementById('f4').addEventListener('input',()=>{
-  const a=calcAge(document.getElementById('f4').value);
-  document.getElementById('f4-age').textContent=a?'('+a+')':'';
-});
-
-['f1','f2','f3','f4','f5','f6','f7','f8a','f8b','f8c','f8d',
- 'f10','f11','f12','f13','f14','f15','f16','f17','f20','doctor'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el)el.addEventListener('blur',saveData);
-});
-
 async function saveData(){
-  const data={
-    pid:PID,room:ROOM,patientName:PNAME,bed:BED,history:HIST,
+  const data={pid:PID,room:ROOM,patientName:PNAME,bed:BED,history:HIST,
     f1:v('f1'),f2:v('f2'),f3:v('f3'),f4:v('f4'),f5:v('f5'),f6:v('f6'),
     f7:v('f7'),f8a:v('f8a'),f8b:v('f8b'),f8c:v('f8c'),f8d:v('f8d'),
     f10:v('f10'),f11:v('f11'),f12:v('f12'),f13:v('f13'),f14:v('f14'),
     f15:v('f15'),f16:v('f16'),f17:v('f17'),f20:v('f20'),doctor:v('doctor'),
-    diagMain:diagMain, diagSec:diagSec,
+    diagMain:diagMain,diagSec:diagSec,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   };
   try{
     if(F100_DOC)await db.collection('forma100_sheets').doc(F100_DOC).set(data,{merge:true});
     else localStorage.setItem('f100_draft',JSON.stringify(data));
-    const ok=document.getElementById('save-ok');ok.classList.add('show');
-    setTimeout(()=>ok.classList.remove('show'),2500);
+    const ok=document.getElementById('save-ok');ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),2500);
   }catch(err){showToast('შეცდომა: '+err.message,true);}
 }
-function v(id){const el=document.getElementById(id);return el?el.value:'';}
 </script>
 </body>
 </html>
