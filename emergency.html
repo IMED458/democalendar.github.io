@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>სასწრაფო გასინჯვის ფურცელი</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;background:#f0f4f8;color:#1a202c;min-height:100vh}
+
+  .top-bar{
+    background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
+    color:#fff;padding:16px 24px;
+    display:flex;align-items:center;gap:16px;
+    box-shadow:0 2px 16px rgba(30,58,138,.3);
+    flex-wrap:wrap;
+  }
+  .top-bar-left{display:flex;flex-direction:column;gap:2px}
+  .top-bar h1{font-size:1.25rem;font-weight:700;letter-spacing:.3px}
+  .top-bar .sub{font-size:.82rem;opacity:.8;font-style:italic}
+  .patient-badge{
+    margin-left:auto;
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:12px;padding:10px 16px;
+    font-size:.85rem;line-height:1.6;text-align:right;
+  }
+  .patient-badge strong{font-size:1.05rem;display:block}
+
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px 80px}
+
+  .section{
+    background:#fff;border:1px solid #e2e8f0;
+    border-radius:16px;margin-bottom:20px;
+    overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07);
+  }
+  .section-header{
+    background:linear-gradient(90deg,#eff6ff,#f8fafc);
+    border-bottom:1px solid #e2e8f0;
+    padding:13px 20px;display:flex;align-items:center;gap:10px;
+  }
+  .section-header .icon{font-size:1.2rem}
+  .section-header h2{font-size:.98rem;font-weight:700;color:#1e40af;letter-spacing:.2px}
+  .section-header .en{font-size:.82rem;color:#64748b;font-style:italic;margin-left:4px}
+  .section-body{padding:20px}
+
+  textarea.field{
+    width:100%;border:1.5px solid #e2e8f0;border-radius:10px;
+    padding:12px 14px;font-size:.95rem;font-family:inherit;
+    resize:vertical;min-height:100px;transition:border .2s;
+    outline:none;color:#1a202c;background:#fafbfc;line-height:1.6;
+  }
+  textarea.field:focus{border-color:#3b82f6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.08)}
+
+  /* Status Localis two columns */
+  .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.status-grid{grid-template-columns:1fr}}
+
+  .status-col{}
+  .col-label{
+    font-size:.9rem;font-weight:700;color:#1e40af;
+    margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .col-label .badge{
+    font-size:.75rem;background:#dbeafe;color:#1d4ed8;
+    border-radius:20px;padding:2px 10px;font-weight:600;
+  }
+  .datetime-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  input[type=datetime-local]{
+    border:1.5px solid #e2e8f0;border-radius:8px;
+    padding:8px 10px;font-size:.88rem;font-family:inherit;
+    outline:none;background:#fafbfc;color:#1a202c;transition:border .2s;
+  }
+  input[type=datetime-local]:focus{border-color:#3b82f6;background:#fff}
+  .now-btn{
+    background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;
+    border-radius:7px;padding:6px 12px;font-size:.78rem;cursor:pointer;
+    font-family:inherit;font-weight:600;transition:all .15s;white-space:nowrap;
+  }
+  .now-btn:hover{background:#dbeafe;border-color:#93c5fd}
+
+  /* Diagnosis section */
+  .diag-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .diag-code-wrap{display:flex;flex-direction:column;gap:6px}
+  .diag-code-wrap label{font-size:.82rem;font-weight:600;color:#374151}
+  input.diag-code{
+    width:130px;border:1.5px solid #e2e8f0;border-radius:8px;
+    padding:10px 12px;font-size:.95rem;font-family:inherit;font-weight:700;
+    color:#1d4ed8;text-transform:uppercase;outline:none;background:#fafbfc;transition:border .2s;
+  }
+  input.diag-code:focus{border-color:#3b82f6;background:#fff}
+  .diag-name-wrap{flex:1;display:flex;flex-direction:column;gap:6px;min-width:200px}
+  .diag-name-wrap label{font-size:.82rem;font-weight:600;color:#374151}
+  input.diag-name{
+    width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
+    padding:10px 12px;font-size:.95rem;font-family:inherit;
+    outline:none;background:#fafbfc;color:#1a202c;transition:border .2s;
+  }
+  input.diag-name:focus{border-color:#3b82f6;background:#fff}
+  .btn-add-diag{
+    background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;
+    border-radius:8px;padding:10px 16px;font-size:.9rem;cursor:pointer;
+    font-family:inherit;font-weight:600;white-space:nowrap;margin-top:24px;
+    transition:all .15s;
+  }
+  .btn-add-diag:hover{background:#dbeafe}
+
+  .diag-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .diag-item{
+    display:flex;align-items:center;gap:10px;
+    background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;
+    padding:10px 14px;
+  }
+  .diag-item .code{
+    font-size:.88rem;font-weight:700;color:#1d4ed8;
+    background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;
+    padding:3px 9px;white-space:nowrap;
+  }
+  .diag-item .name{flex:1;font-size:.92rem;color:#1a202c}
+  .diag-item .remove{
+    background:none;border:none;cursor:pointer;
+    color:#94a3b8;font-size:1.1rem;padding:2px 4px;
+    border-radius:5px;transition:color .15s;
+  }
+  .diag-item .remove:hover{color:#ef4444}
+
+  /* Actions */
+  .actions{display:flex;gap:12px;justify-content:flex-end;padding-top:4px;flex-wrap:wrap}
+  .btn-save{
+    background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+    color:#fff;border:none;border-radius:10px;
+    padding:13px 32px;font-size:1rem;font-weight:700;
+    cursor:pointer;font-family:inherit;
+    box-shadow:0 3px 10px rgba(29,78,216,.3);
+    transition:opacity .15s;
+  }
+  .btn-save:hover{opacity:.9}
+  .btn-print{
+    background:#fff;color:#1d4ed8;
+    border:1.5px solid #bfdbfe;border-radius:10px;
+    padding:13px 24px;font-size:1rem;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:background .15s;
+  }
+  .btn-print:hover{background:#eff6ff}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:28px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#1e293b;color:#fff;padding:12px 28px;
+    border-radius:12px;font-size:.95rem;
+    opacity:0;transition:all .3s;pointer-events:none;
+    z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.error{background:#dc2626}
+  .toast.ok{background:#16a34a}
+
+  /* Saved indicator */
+  .save-badge{
+    display:none;align-items:center;gap:6px;
+    background:#f0fdf4;border:1px solid #bbf7d0;
+    color:#15803d;border-radius:8px;padding:8px 14px;
+    font-size:.85rem;font-weight:600;
+  }
+  .save-badge.visible{display:flex}
+
+  @media print{
+    .top-bar .now-btn,.actions,.btn-save,.btn-print,.btn-add-diag,.diag-item .remove{display:none!important}
+    body{background:#fff}
+    .section{border:1px solid #ccc;box-shadow:none;page-break-inside:avoid}
+    .section-header{background:#f0f0f0!important}
+    textarea.field{border:1px solid #ccc;background:#fff}
+    input[type=datetime-local],input.diag-code,input.diag-name{border:1px solid #ccc;background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <h1>🚨 სასწრაფო გასინჯვის ფურცელი</h1>
+    <div class="sub">Emergency Examination Sheet</div>
+  </div>
+  <div class="patient-badge">
+    <strong id="pb-name">—</strong>
+    <span id="pb-info"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ჩივილები -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">💬</span>
+      <h2>ჩივილები <span class="en">Complaints</span></h2>
+    </div>
+    <div class="section-body">
+      <textarea class="field" id="complaints" rows="5" placeholder="პაციენტის ჩივილები..."></textarea>
+    </div>
+  </div>
+
+  <!-- Anamnesis morbi -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">📖</span>
+      <h2>დაავადების ანამნეზი <span class="en">Anamnesis morbi</span></h2>
+    </div>
+    <div class="section-body">
+      <textarea class="field" id="anamnesis" rows="7" placeholder="დაავადების ანამნეზი..."></textarea>
+    </div>
+  </div>
+
+  <!-- Status Localis -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🩺</span>
+      <h2>ობიექტური გასინჯვის მონაცემები <span class="en">Status Localis</span></h2>
+    </div>
+    <div class="section-body">
+      <div class="status-grid">
+        <!-- შემოსვლა -->
+        <div class="status-col">
+          <div class="col-label"><span class="badge">შემოსვლა</span> Admission</div>
+          <div class="datetime-row">
+            <input type="datetime-local" id="dt-admission"/>
+            <button class="now-btn" onclick="setNow('dt-admission')">⏱ ახლა</button>
+          </div>
+          <textarea class="field" id="status-admission" rows="8" placeholder="შემოსვლისას გასინჯვის მონაცემები..."></textarea>
+        </div>
+        <!-- გადაყვანა -->
+        <div class="status-col">
+          <div class="col-label"><span class="badge">გადაყვანა</span> Transfer</div>
+          <div class="datetime-row">
+            <input type="datetime-local" id="dt-transfer"/>
+            <button class="now-btn" onclick="setNow('dt-transfer')">⏱ ახლა</button>
+          </div>
+          <textarea class="field" id="status-transfer" rows="8" placeholder="გადაყვანისას გასინჯვის მონაცემები..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- დიაგნოზი -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🏥</span>
+      <h2>დიაგნოზი <span class="en">Diagnosis — ICD-10</span></h2>
+    </div>
+    <div class="section-body">
+      <div class="diag-row">
+        <div class="diag-code-wrap">
+          <label>ICD-10 კოდი</label>
+          <input type="text" class="diag-code" id="diag-code" placeholder="A00" maxlength="10"/>
+        </div>
+        <div class="diag-name-wrap">
+          <label>დიაგნოზის დასახელება</label>
+          <input type="text" class="diag-name" id="diag-name" placeholder="დიაგნოზი..." />
+        </div>
+        <button class="btn-add-diag" onclick="addDiag()">+ დამატება</button>
+      </div>
+      <div class="diag-list" id="diag-list"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <div class="save-badge" id="save-badge">✅ შენახულია</div>
+    <button class="btn-print" onclick="window.print()">🖨️ ბეჭდვა</button>
+    <button class="btn-save" onclick="saveData()">💾 შენახვა</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",
+  authDomain: "clinic-inpatient.firebaseapp.com",
+  projectId: "clinic-inpatient",
+  storageBucket: "clinic-inpatient.firebasestorage.app",
+  messagingSenderId: "586729386322",
+  appId: "1:586729386322:web:17a92324784c2c988a4a8b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── URL params ────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const PID   = params.get('pid')   || '';
+const ROOM  = params.get('room')  || '';
+const PNAME = decodeURIComponent(params.get('name') || '');
+const BED   = decodeURIComponent(params.get('bed')  || '');
+const HIST  = decodeURIComponent(params.get('history') || '');
+
+document.getElementById('pb-name').textContent = PNAME || 'პაციენტი';
+const infoArr = [];
+if (BED)  infoArr.push('საწოლი ' + BED);
+if (HIST) infoArr.push('ისტ. ' + HIST);
+if (ROOM) infoArr.push(ROOM);
+document.getElementById('pb-info').textContent = infoArr.join(' · ');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowLocal(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function setNow(id){ document.getElementById(id).value = nowLocal(); }
+
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(()=>{ t.className='toast'; }, 3200);
+}
+
+// ── Diagnosis list ────────────────────────────────────────────────────────────
+let diagnoses = [];
+
+function renderDiags(){
+  const list = document.getElementById('diag-list');
+  if(diagnoses.length === 0){ list.innerHTML=''; return; }
+  list.innerHTML = diagnoses.map((d,i) => `
+    <div class="diag-item">
+      ${d.code ? `<span class="code">${escHtml(d.code)}</span>` : ''}
+      <span class="name">${escHtml(d.name)}</span>
+      <button class="remove" onclick="removeDiag(${i})" title="წაშლა">×</button>
+    </div>
+  `).join('');
+}
+
+function addDiag(){
+  const code = document.getElementById('diag-code').value.trim().toUpperCase();
+  const name = document.getElementById('diag-name').value.trim();
+  if(!name && !code){ showToast('შეიყვანეთ კოდი ან დასახელება','error'); return; }
+  diagnoses.push({code, name});
+  renderDiags();
+  document.getElementById('diag-code').value = '';
+  document.getElementById('diag-name').value = '';
+  document.getElementById('diag-code').focus();
+}
+
+function removeDiag(i){
+  diagnoses.splice(i,1);
+  renderDiags();
+}
+
+// Enter on name input → addDiag
+document.getElementById('diag-name').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); addDiag(); }
+});
+document.getElementById('diag-code').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('diag-name').focus(); }
+});
+
+function escHtml(t){
+  if(!t) return '';
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+// ── Save / Load ───────────────────────────────────────────────────────────────
+const DOC_ID = PID && ROOM ? `${ROOM}_${PID}` : null;
+
+async function saveData(){
+  const data = {
+    pid: PID, room: ROOM, patientName: PNAME, bed: BED, history: HIST,
+    complaints:       document.getElementById('complaints').value,
+    anamnesis:        document.getElementById('anamnesis').value,
+    dtAdmission:      document.getElementById('dt-admission').value,
+    statusAdmission:  document.getElementById('status-admission').value,
+    dtTransfer:       document.getElementById('dt-transfer').value,
+    statusTransfer:   document.getElementById('status-transfer').value,
+    diagnoses:        diagnoses,
+    updatedAt:        firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    if(DOC_ID){
+      await db.collection('emergency_sheets').doc(DOC_ID).set(data, {merge:true});
+    } else {
+      // fallback: save by localStorage key
+      localStorage.setItem('emergency_draft', JSON.stringify(data));
+    }
+    showToast('✅ შენახულია', 'ok');
+    const badge = document.getElementById('save-badge');
+    badge.classList.add('visible');
+    setTimeout(()=> badge.classList.remove('visible'), 4000);
+  } catch(err){
+    showToast('შეცდომა: ' + err.message, 'error');
+  }
+}
+
+async function loadData(){
+  if(!DOC_ID) return;
+  try {
+    const snap = await db.collection('emergency_sheets').doc(DOC_ID).get();
+    if(!snap.exists) return;
+    const d = snap.data();
+    if(d.complaints)      document.getElementById('complaints').value      = d.complaints;
+    if(d.anamnesis)       document.getElementById('anamnesis').value       = d.anamnesis;
+    if(d.dtAdmission)     document.getElementById('dt-admission').value    = d.dtAdmission;
+    if(d.statusAdmission) document.getElementById('status-admission').value= d.statusAdmission;
+    if(d.dtTransfer)      document.getElementById('dt-transfer').value     = d.dtTransfer;
+    if(d.statusTransfer)  document.getElementById('status-transfer').value = d.statusTransfer;
+    if(Array.isArray(d.diagnoses)){ diagnoses = d.diagnoses; renderDiags(); }
+  } catch(err){
+    console.warn('Load error:', err.message);
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
