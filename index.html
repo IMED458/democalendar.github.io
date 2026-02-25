@@ -127,6 +127,17 @@
         `&admit=${encodeURIComponent(payload.admit)}`;
       window.open(url, '_blank');
     };
+    window.openEmergency = id => {
+      const p = patients.find(x => x.id === id);
+      if (!p) { showToast('პაციენტი ვერ მოიძებნა', true); return; }
+      const url =
+        `emergency.html?pid=${encodeURIComponent(p.id)}` +
+        `&room=${encodeURIComponent(currentCollection?.id || '')}` +
+        `&name=${encodeURIComponent(p.patient_name || '')}` +
+        `&bed=${encodeURIComponent(p.bed || '')}` +
+        `&history=${encodeURIComponent(p.history_number || '')}`;
+      window.open(url, '_blank');
+    };
     // საწოლების თანმიმდევრული სორტირება
     function getBedOrder(bed) {
       if (!bed) return 999;
@@ -215,6 +226,9 @@
               <button class="btn btn-checklist" onclick="openChecklist('${
                 p.id
               }')">📋</button>
+              <button class="btn btn-checklist" title="სასწრაფო გასინჯვის ფურცელი" onclick="openEmergency('${
+                p.id
+              }')">🚨</button>
               <button class="btn btn-edit" onclick="openEditModal('${
                 p.id
               }')">✏️</button>
