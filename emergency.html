@@ -40,6 +40,7 @@
     const address = decodeURIComponent(params.get('address') || '');
     const admitDt = decodeURIComponent(params.get('admit_dt') || '');
     const doctor = decodeURIComponent(params.get('doctor') || '');
+
     const docId = pid && room ? `${room}_${pid}` : null;
 
     // UI შევსება
@@ -98,8 +99,8 @@
     }
 
     function autoResize(el) {
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
+      el.style.height = '1px';           // იძულებითი reflow
+      el.style.height = (el.scrollHeight + 4) + 'px';
     }
 
     document.querySelectorAll('textarea.f').forEach(ta => {
@@ -135,7 +136,6 @@
       const code = document.getElementById('diag-code').value.trim().toUpperCase();
       let name = document.getElementById('diag-name').value.trim();
 
-      // თუ სახელი ჯერ არ არის შევსებული და კოდი არსებობს → ავტომატურად ჩავსვათ
       if (!name && code && typeof icd10Data !== 'undefined' && icd10Data[code]) {
         name = icd10Data[code];
       }
@@ -152,14 +152,12 @@
       saveData();
     };
 
-    // ავტომატური დასახელების ჩასმა კოდის შეყვანისას
     document.getElementById('diag-code').addEventListener('input', function() {
       const code = this.value.trim().toUpperCase();
       const nameInput = document.getElementById('diag-name');
-
       if (code.length >= 3 && typeof icd10Data !== 'undefined' && icd10Data[code]) {
         nameInput.value = icd10Data[code];
-        autoResize(nameInput);  // თუ textarea იყო, მაგრამ აქ input-ია
+        autoResize(nameInput);
       }
     });
 
@@ -207,14 +205,19 @@
 
         document.getElementById('complaints').value = d.complaints || '';
         document.getElementById('anamnesis').value = d.anamnesis || '';
+
         document.getElementById('admit-date').value = d.dtAdmDate || (admitDt ? admitDt.split('T')[0] : '');
         document.getElementById('admit-time').value = d.dtAdmTime || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
+
         document.getElementById('st-adm').value = d.stAdm || '';
         document.getElementById('doctor-adm').value = d.doctorAdm || '';
+
         document.getElementById('tr-date').value = d.dtTrDate || '';
         document.getElementById('tr-time').value = d.dtTrTime || '';
+
         document.getElementById('st-tr').value = d.stTr || '';
         document.getElementById('doctor-tr').value = d.doctorTr || '';
+
         document.getElementById('doctor-main').value = d.doctorMain || d.doctor || '';
 
         if (Array.isArray(d.diagnoses)) {
@@ -239,86 +242,115 @@
     window.addEventListener('beforeprint', () => {
       document.querySelectorAll('textarea.f').forEach(ta => {
         ta.style.height = 'auto';
-        ta.style.height = ta.scrollHeight + 'px';
+        ta.style.maxHeight = 'none';
         ta.style.overflow = 'visible';
       });
     });
-
   </script>
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.55;}
+    body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.58;}
     .topbar{background:#111;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .topbar h1{font-size:1.05rem;font-weight:700;letter-spacing:.3px;}
     .pbadge{margin-left:auto;font-size:.82rem;line-height:1.6;text-align:right;}
     .pbadge strong{font-size:.95rem;display:block;}
-    .wrap{max-width:900px;margin:0 auto;padding:14px 20px 90px;}
-    .sec{margin-bottom:12px;}
-    .sec-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#111;border-bottom:1.5px solid #111;padding-bottom:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
+    .wrap{max-width:900px;margin:0 auto;padding:14px 20px 100px;}
+    .sec{margin-bottom:14px;}
+    .sec-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#111;border-bottom:1.5px solid #111;padding-bottom:5px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
     .sec-title .arr{font-size:.75rem;color:#888;transition:transform .2s;}
-    .sec-body{margin-top:8px;}
+    .sec-body{margin-top:9px;}
     .sec.open .sec-title .arr{transform:rotate(180deg);}
     textarea.f{
-      width:100%;border:none;border-bottom:1px solid #ccc;outline:none;
-      resize:none;overflow:visible !important;font-family:inherit;font-size:.95rem;
-      line-height:1.6;padding:6px 2px 4px;background:transparent;
-      min-height:60px;height:auto !important;transition:border-color .2s;
-      white-space:pre-wrap; word-wrap:break-word;
+      width:100%;border:none;border:1px solid #ddd;outline:none;
+      resize:none;overflow:hidden;font-family:inherit;font-size:0.96rem;
+      line-height:1.58;padding:8px 6px 6px;min-height:90px;
+      background:#fafafa;border-radius:4px;transition:border-color .2s;
+      white-space:pre-wrap; word-wrap:break-word; word-break:break-word;
     }
-    textarea.f:focus{border-bottom-color:#111;}
+    textarea.f:focus{border-color:#111;background:#fff;}
     .col-head{font-size:.82rem;font-weight:700;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
     .col-badge{font-size:.75rem;background:#111;color:#fff;border-radius:3px;padding:1px 6px;font-weight:600;}
-    .dt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+    .dt-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
     .dt-group{display:flex;flex-direction:column;gap:4px;}
-    input[type="date"], input[type="text"]{border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;font-size:.9rem;padding:4px 2px;background:transparent;color:#111;transition:border-color .2s;min-width:140px;}
+    input[type="date"], input[type="text"]{border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;font-size:.9rem;padding:5px 3px;background:transparent;color:#111;transition:border-color .2s;min-width:140px;}
     input:focus{border-bottom-color:#111;}
-    .now-btn{background:none;border:1px solid #888;border-radius:4px;padding:3px 8px;font-size:.78rem;cursor:pointer;color:#444;}
+    .now-btn{background:none;border:1px solid #888;border-radius:4px;padding:3px 9px;font-size:.78rem;cursor:pointer;color:#444;}
     .now-btn:hover{background:#111;color:#fff;border-color:#111;}
-    .doctor-row{display:flex;align-items:center;gap:12px;margin:16px 0 8px 0;}
+    .doctor-row{display:flex;align-items:center;gap:12px;margin:16px 0 10px 0;}
     .doctor-row label{font-size:0.9rem;font-weight:600;white-space:nowrap;min-width:140px;}
-    .doctor-row input{flex:1;max-width:400px;border:none;border-bottom:1px solid #ccc;padding:5px 2px;font-size:0.95rem;}
+    .doctor-row input{flex:1;max-width:400px;border:none;border-bottom:1px solid #ccc;padding:6px 3px;font-size:0.96rem;}
     .doctor-row input:focus{border-bottom-color:#111;}
-    .icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
-    .icd-code-wrap{position:relative;width:110px;flex-shrink:0;}
-    input.ic{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.95rem;padding:5px 2px;background:transparent;color:#1d4ed8;font-weight:700;}
+    .icd-inputs{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
+    .icd-code-wrap{position:relative;width:115px;flex-shrink:0;}
+    input.ic{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.96rem;padding:6px 3px;background:transparent;color:#1d4ed8;font-weight:700;}
     input.ic:focus{border-bottom-color:#1d4ed8;}
-    .icd-name-wrap{flex:1;min-width:180px;position:relative;}
-    input.in{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.95rem;padding:5px 2px;background:transparent;}
+    .icd-name-wrap{flex:1;min-width:200px;position:relative;}
+    input.in{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.96rem;padding:6px 3px;background:transparent;}
     input.in:focus{border-bottom-color:#111;}
-    .add-btn{background:#111;color:#fff;border:none;border-radius:4px;padding:7px 14px;font-size:.82rem;cursor:pointer;font-weight:600;}
+    .add-btn{background:#111;color:#fff;border:none;border-radius:5px;padding:8px 16px;font-size:.84rem;cursor:pointer;font-weight:600;}
     .add-btn:hover{background:#333;}
-    .diag-list{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
-    .diag-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f0f0f0;}
-    .diag-item .code{font-size:.82rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:2px 7px;}
-    .diag-item .name{flex:1;font-size:.92rem;}
-    .diag-item .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.1rem;padding:0 4px;}
+    .diag-list{margin-top:14px;display:flex;flex-direction:column;gap:7px;}
+    .diag-item{display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid #f0f0f0;}
+    .diag-item .code{font-size:.84rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:3px 8px;}
+    .diag-item .name{flex:1;font-size:.94rem;}
+    .diag-item .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.2rem;padding:0 5px;}
     .diag-item .rm:hover{color:#dc2626;}
-    .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid #e5e7eb;padding:10px 20px;display:flex;gap:12px;justify-content:flex-end;align-items:center;z-index:50;}
-    .btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:9px 26px;font-size:.95rem;font-weight:700;cursor:pointer;}
+    .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid #e5e7eb;padding:12px 24px;display:flex;gap:14px;justify-content:flex-end;align-items:center;z-index:50;}
+    .btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:10px 28px;font-size:.96rem;font-weight:700;cursor:pointer;}
     .btn-save:hover{background:#333;}
-    .btn-print{background:#fff;color:#111;border:1.5px solid #aaa;border-radius:6px;padding:9px 20px;font-size:.95rem;font-weight:600;cursor:pointer;}
+    .btn-print{background:#fff;color:#111;border:1.5px solid #999;border-radius:6px;padding:10px 22px;font-size:.96rem;font-weight:600;cursor:pointer;}
     .btn-print:hover{background:#f9fafb;}
-    .save-ok{font-size:.85rem;color:#15803d;font-weight:600;opacity:0;transition:opacity .3s;}
+    .save-ok{font-size:.86rem;color:#15803d;font-weight:600;opacity:0;transition:opacity .3s;}
     .save-ok.show{opacity:1;}
-    .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 24px;border-radius:8px;font-size:.9rem;opacity:0;transition:all .3s;z-index:999;}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 26px;border-radius:8px;font-size:.92rem;opacity:0;transition:all .3s;z-index:999;}
     .toast.show{opacity:1;}
     .toast.err{background:#dc2626;}
-    @media print{
-      .actions,.now-btn,.add-btn,.diag-item .rm,.sec-title .arr{display:none!important;}
-      body{font-size:12px;padding:0;margin:0;}
-      .wrap{padding:10px 15px;}
-      textarea.f{
-        overflow:visible !important;
-        height:auto !important;
-        max-height:none !important;
-        page-break-inside:avoid;
-        break-inside:avoid;
-        white-space:pre-wrap;
-        word-wrap:break-word;
-        border-bottom:1px solid #000;
+
+    @media print {
+      .actions, .now-btn, .add-btn, .diag-item .rm, .sec-title .arr { display: none !important; }
+      body { font-size: 11pt; margin: 0; padding: 0; line-height: 1.48; }
+      .wrap { padding: 10mm 12mm; max-width: none; width: 100%; }
+      .topbar { padding: 8mm 12mm; }
+
+      textarea.f {
+        height: auto !important;
+        min-height: 3cm !important;
+        max-height: none !important;
+        overflow: visible !important;
+        border: 1px solid #000 !important;
+        background: white !important;
+        padding: 6mm 4mm !important;
+        margin: 2mm 0 !important;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        word-break: break-word;
+        line-height: 1.5;
+        font-size: 10.8pt;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
-      .sec, .sec-body{page-break-inside:avoid;}
+
+      .sec, .sec-body, .diag-list {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+        margin-bottom: 8mm;
+      }
+
+      .diag-item {
+        break-inside: avoid;
+      }
+
+      @page {
+        margin: 12mm 10mm;
+        size: A4 portrait;
+      }
+
+      * {
+        hyphens: auto;
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
     }
   </style>
 </head>
@@ -326,7 +358,10 @@
 
 <div class="topbar">
   <div><h1>ემერჯენსის გასინჯვის ფურცელი</h1></div>
-  <div class="pbadge"><strong id="pb-name">—</strong><span id="pb-info"></span></div>
+  <div class="pbadge">
+    <strong id="pb-name">—</strong>
+    <span id="pb-info"></span>
+  </div>
 </div>
 
 <div class="wrap">
@@ -334,22 +369,22 @@
   <div class="sec open" id="sec-patient">
     <div class="sec-title">პაციენტის მონაცემები</div>
     <div class="sec-body">
-      <table style="width:100%;border-collapse:collapse;font-size:.92rem;">
+      <table style="width:100%;border-collapse:collapse;font-size:.94rem;">
         <tr>
-          <td style="width:140px;color:#555;font-weight:600;padding:4px 0;">სახელი / გვარი:</td>
-          <td style="padding:4px 10px;" id="inf-name">—</td>
-          <td style="width:120px;color:#555;font-weight:600;padding:4px 0;">პირადი ნომ.:</td>
-          <td style="padding:4px 10px;" id="inf-pid">—</td>
+          <td style="width:140px;color:#555;font-weight:600;padding:5px 0;">სახელი / გვარი:</td>
+          <td style="padding:5px 12px;" id="inf-name">—</td>
+          <td style="width:120px;color:#555;font-weight:600;padding:5px 0;">პირადი ნომ.:</td>
+          <td style="padding:5px 12px;" id="inf-pid">—</td>
         </tr>
         <tr>
-          <td style="color:#555;font-weight:600;padding:4px 0;">დ/თ:</td>
-          <td style="padding:4px 10px;"><span id="inf-dob">—</span> <span id="inf-age" style="color:#1d4ed8;font-weight:700;"></span></td>
-          <td style="color:#555;font-weight:600;padding:4px 0;">მისამართი:</td>
-          <td style="padding:4px 10px;" id="inf-addr">—</td>
+          <td style="color:#555;font-weight:600;padding:5px 0;">დ/თ:</td>
+          <td style="padding:5px 12px;"><span id="inf-dob">—</span> <span id="inf-age" style="color:#1d4ed8;font-weight:700;"></span></td>
+          <td style="color:#555;font-weight:600;padding:5px 0;">მისამართი:</td>
+          <td style="padding:5px 12px;" id="inf-addr">—</td>
         </tr>
         <tr>
-          <td style="color:#555;font-weight:600;padding:4px 0;">სტაციონარში:</td>
-          <td style="padding:4px 10px;" id="inf-admit" colspan="3">—</td>
+          <td style="color:#555;font-weight:600;padding:5px 0;">სტაციონარში:</td>
+          <td style="padding:5px 12px;" id="inf-admit" colspan="3">—</td>
         </tr>
       </table>
     </div>
@@ -391,7 +426,7 @@
         </div>
       </div>
 
-      <div style="margin-top:28px;">
+      <div style="margin-top:32px;">
         <div class="col-head"><span class="col-badge">გადაყვანა</span></div>
         <div class="dt-row">
           <div class="dt-group">
@@ -432,7 +467,7 @@
   <div class="sec" id="sec-treating-doctor">
     <div class="sec-title">მკურნალი ექიმი</div>
     <div class="sec-body">
-      <div class="doctor-row" style="margin-top:4px;">
+      <div class="doctor-row" style="margin-top:6px;">
         <label>სახელი გვარი:</label>
         <input type="text" id="doctor-main" placeholder="მკურნალი ექიმის სახელი გვარი"/>
       </div>
