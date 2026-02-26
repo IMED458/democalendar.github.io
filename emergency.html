@@ -39,7 +39,7 @@
     const dob = decodeURIComponent(params.get('dob') || '');
     const address = decodeURIComponent(params.get('address') || '');
     const admitDt = decodeURIComponent(params.get('admit_dt') || '');
-    const doctor = decodeURIComponent(params.get('doctor') || ''); // უკან დაბრუნებისთვის
+    const doctor = decodeURIComponent(params.get('doctor') || '');
     const docId = pid && room ? `${room}_${pid}` : null;
 
     // UI შევსება
@@ -55,13 +55,11 @@
     document.getElementById('inf-dob').textContent = dob || '—';
     document.getElementById('inf-addr').textContent = address || '—';
 
-    // ასაკის გამოთვლა
     if (dob) {
       const age = calcAge(dob);
       if (age) document.getElementById('inf-age').textContent = `(${age})`;
     }
 
-    // შემოსვლის თარიღი/დრო
     let admitDate = '';
     let admitTime = '';
     if (admitDt) {
@@ -113,7 +111,6 @@
       document.getElementById(id).classList.toggle('open');
     };
 
-    // დიაგნოზები
     let diagnoses = [];
 
     function renderDiags() {
@@ -136,11 +133,18 @@
 
     window.addDiag = () => {
       const code = document.getElementById('diag-code').value.trim().toUpperCase();
-      const name = document.getElementById('diag-name').value.trim();
+      let name = document.getElementById('diag-name').value.trim();
+
+      // თუ სახელი ჯერ არ არის შევსებული და კოდი არსებობს → ავტომატურად ჩავსვათ
+      if (!name && code && typeof icd10Data !== 'undefined' && icd10Data[code]) {
+        name = icd10Data[code];
+      }
+
       if (!code && !name) {
         showToast('შეიყვანეთ კოდი ან დასახელება', true);
         return;
       }
+
       diagnoses.push({ code, name });
       renderDiags();
       document.getElementById('diag-code').value = '';
@@ -148,7 +152,17 @@
       saveData();
     };
 
-    // შენახვა
+    // ავტომატური დასახელების ჩასმა კოდის შეყვანისას
+    document.getElementById('diag-code').addEventListener('input', function() {
+      const code = this.value.trim().toUpperCase();
+      const nameInput = document.getElementById('diag-name');
+
+      if (code.length >= 3 && typeof icd10Data !== 'undefined' && icd10Data[code]) {
+        nameInput.value = icd10Data[code];
+        autoResize(nameInput);  // თუ textarea იყო, მაგრამ აქ input-ია
+      }
+    });
+
     async function saveData() {
       if (!docId) {
         showToast('არ არის PID ან ROOM — მონაცემები არ შეინახება', true);
@@ -160,14 +174,7 @@
         : '';
 
       const data = {
-        pid: pid,
-        room: room,
-        patientName: name,
-        bed: bed,
-        history: history,
-        personalId: pidNum,
-        dob: dob,
-        address: address,
+        pid, room, patientName: name, bed, history, personalId: pidNum, dob, address,
         admitDt: admitFull,
         complaints: document.getElementById('complaints').value.trim(),
         anamnesis: document.getElementById('anamnesis').value.trim(),
@@ -180,21 +187,19 @@
         stTr: document.getElementById('st-tr').value.trim(),
         doctorTr: document.getElementById('doctor-tr').value.trim(),
         doctorMain: document.getElementById('doctor-main').value.trim(),
-        diagnoses: diagnoses,
+        diagnoses,
         updatedAt: serverTimestamp()
       };
 
       try {
         await setDoc(doc(db, 'emergency_sheets', docId), data, { merge: true });
-        const ok = document.getElementById('save-ok');
-        ok.classList.add('show');
-        setTimeout(() => ok.classList.remove('show'), 2500);
+        document.getElementById('save-ok').classList.add('show');
+        setTimeout(() => document.getElementById('save-ok').classList.remove('show'), 2500);
       } catch (err) {
         showToast('შეცდომა შენახვისას: ' + err.message, true);
       }
     }
 
-    // ჩატვირთვა
     if (docId) {
       onSnapshot(doc(db, 'emergency_sheets', docId), (snap) => {
         if (!snap.exists()) return;
@@ -202,18 +207,14 @@
 
         document.getElementById('complaints').value = d.complaints || '';
         document.getElementById('anamnesis').value = d.anamnesis || '';
-
         document.getElementById('admit-date').value = d.dtAdmDate || (admitDt ? admitDt.split('T')[0] : '');
         document.getElementById('admit-time').value = d.dtAdmTime || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
-
         document.getElementById('st-adm').value = d.stAdm || '';
         document.getElementById('doctor-adm').value = d.doctorAdm || '';
-
         document.getElementById('tr-date').value = d.dtTrDate || '';
         document.getElementById('tr-time').value = d.dtTrTime || '';
         document.getElementById('st-tr').value = d.stTr || '';
         document.getElementById('doctor-tr').value = d.doctorTr || '';
-
         document.getElementById('doctor-main').value = d.doctorMain || d.doctor || '';
 
         if (Array.isArray(d.diagnoses)) {
@@ -227,13 +228,22 @@
 
     document.querySelector('.btn-save').onclick = saveData;
 
-    // ახლა დროის ღილაკი
     window.setNow = function(id) {
       const now = new Date();
       const h = String(now.getHours()).padStart(2, '0');
       const m = String(now.getMinutes()).padStart(2, '0');
       document.getElementById(id).value = `${h}:${m}`;
     };
+
+    // ბეჭდვის წინ textarea-ების სრული გაშლა
+    window.addEventListener('beforeprint', () => {
+      document.querySelectorAll('textarea.f').forEach(ta => {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+        ta.style.overflow = 'visible';
+      });
+    });
+
   </script>
 
   <style>
@@ -241,7 +251,6 @@
     body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.55;}
     .topbar{background:#111;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .topbar h1{font-size:1.05rem;font-weight:700;letter-spacing:.3px;}
-    .topbar .sub{font-size:.78rem;opacity:.7;font-style:italic;}
     .pbadge{margin-left:auto;font-size:.82rem;line-height:1.6;text-align:right;}
     .pbadge strong{font-size:.95rem;display:block;}
     .wrap{max-width:900px;margin:0 auto;padding:14px 20px 90px;}
@@ -250,7 +259,13 @@
     .sec-title .arr{font-size:.75rem;color:#888;transition:transform .2s;}
     .sec-body{margin-top:8px;}
     .sec.open .sec-title .arr{transform:rotate(180deg);}
-    textarea.f{width:100%;border:none;border-bottom:1px solid #ccc;outline:none;resize:none;overflow:hidden;font-family:inherit;font-size:.95rem;line-height:1.6;padding:6px 2px 4px;background:transparent;min-height:60px;transition:border-color .2s;}
+    textarea.f{
+      width:100%;border:none;border-bottom:1px solid #ccc;outline:none;
+      resize:none;overflow:visible !important;font-family:inherit;font-size:.95rem;
+      line-height:1.6;padding:6px 2px 4px;background:transparent;
+      min-height:60px;height:auto !important;transition:border-color .2s;
+      white-space:pre-wrap; word-wrap:break-word;
+    }
     textarea.f:focus{border-bottom-color:#111;}
     .col-head{font-size:.82rem;font-weight:700;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
     .col-badge{font-size:.75rem;background:#111;color:#fff;border-radius:3px;padding:1px 6px;font-weight:600;}
@@ -273,13 +288,6 @@
     input.in:focus{border-bottom-color:#111;}
     .add-btn{background:#111;color:#fff;border:none;border-radius:4px;padding:7px 14px;font-size:.82rem;cursor:pointer;font-weight:600;}
     .add-btn:hover{background:#333;}
-    .icd-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:200;max-height:260px;overflow-y:auto;display:none;}
-    .icd-dd.open{display:block;}
-    .icd-opt{padding:8px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline;border-bottom:1px solid #f5f5f5;}
-    .icd-opt:hover,.icd-opt.active{background:#eff6ff;}
-    .icd-opt .oc{font-size:.82rem;font-weight:700;color:#1d4ed8;min-width:55px;flex-shrink:0;}
-    .icd-opt .on{font-size:.9rem;color:#111;line-height:1.4;}
-    .no-res{padding:12px;color:#9ca3af;font-size:.9rem;}
     .diag-list{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
     .diag-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f0f0f0;}
     .diag-item .code{font-size:.82rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:2px 7px;}
@@ -300,6 +308,17 @@
       .actions,.now-btn,.add-btn,.diag-item .rm,.sec-title .arr{display:none!important;}
       body{font-size:12px;padding:0;margin:0;}
       .wrap{padding:10px 15px;}
+      textarea.f{
+        overflow:visible !important;
+        height:auto !important;
+        max-height:none !important;
+        page-break-inside:avoid;
+        break-inside:avoid;
+        white-space:pre-wrap;
+        word-wrap:break-word;
+        border-bottom:1px solid #000;
+      }
+      .sec, .sec-body{page-break-inside:avoid;}
     }
   </style>
 </head>
@@ -353,7 +372,6 @@
   <div class="sec" id="sec-status">
     <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status localis <span class="arr">▼</span></div>
     <div class="sec-body">
-
       <div>
         <div class="col-head"><span class="col-badge">შემოსვლა</span></div>
         <div class="dt-row">
@@ -367,7 +385,6 @@
           </div>
         </div>
         <textarea class="f" id="st-adm" placeholder="შემოსვლის დროს მონაცემები..."></textarea>
-
         <div class="doctor-row">
           <label>ექიმი:</label>
           <input type="text" id="doctor-adm" placeholder="სახელი გვარი"/>
@@ -388,13 +405,11 @@
           <button class="now-btn" onclick="setNow('tr-time')">ახლა</button>
         </div>
         <textarea class="f" id="st-tr" placeholder="გადაყვანის დროს მონაცემები..."></textarea>
-
         <div class="doctor-row">
           <label>ექიმი:</label>
           <input type="text" id="doctor-tr" placeholder="სახელი გვარი"/>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -404,11 +419,9 @@
       <div class="icd-inputs">
         <div class="icd-code-wrap">
           <input type="text" class="ic" id="diag-code" placeholder="კოდი" maxlength="10" autocomplete="off"/>
-          <div class="icd-dd" id="dd-code"></div>
         </div>
         <div class="icd-name-wrap">
-          <input type="text" class="in" id="diag-name" placeholder="დასახელება" autocomplete="off"/>
-          <div class="icd-dd" id="dd-name"></div>
+          <input type="text" class="in" id="diag-name" placeholder="დასახელება ან ძებნა..." autocomplete="off"/>
         </div>
         <button class="add-btn" onclick="addDiag()">+ დამატება</button>
       </div>
