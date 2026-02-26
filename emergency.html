@@ -99,7 +99,7 @@
     }
 
     function autoResize(el) {
-      el.style.height = '1px';           // იძულებითი reflow
+      el.style.height = '1px';
       el.style.height = (el.scrollHeight + 4) + 'px';
     }
 
@@ -238,12 +238,12 @@
       document.getElementById(id).value = `${h}:${m}`;
     };
 
-    // ბეჭდვის წინ textarea-ების სრული გაშლა
     window.addEventListener('beforeprint', () => {
       document.querySelectorAll('textarea.f').forEach(ta => {
         ta.style.height = 'auto';
         ta.style.maxHeight = 'none';
         ta.style.overflow = 'visible';
+        ta.style.minHeight = 'unset';
       });
     });
   </script>
@@ -262,7 +262,7 @@
     .sec-body{margin-top:9px;}
     .sec.open .sec-title .arr{transform:rotate(180deg);}
     textarea.f{
-      width:100%;border:none;border:1px solid #ddd;outline:none;
+      width:100%;border:1px solid #ddd;outline:none;
       resize:none;overflow:hidden;font-family:inherit;font-size:0.96rem;
       line-height:1.58;padding:8px 6px 6px;min-height:90px;
       background:#fafafa;border-radius:4px;transition:border-color .2s;
@@ -308,48 +308,67 @@
     .toast.err{background:#dc2626;}
 
     @media print {
-      .actions, .now-btn, .add-btn, .diag-item .rm, .sec-title .arr { display: none !important; }
-      body { font-size: 11pt; margin: 0; padding: 0; line-height: 1.48; }
-      .wrap { padding: 10mm 12mm; max-width: none; width: 100%; }
-      .topbar { padding: 8mm 12mm; }
+      .actions, .now-btn, .add-btn, .diag-item .rm, .sec-title .arr {
+        display: none !important;
+      }
+
+      body {
+        font-size: 11pt !important;
+        line-height: 1.48 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .wrap {
+        padding: 10mm 12mm !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+      }
+
+      .topbar {
+        padding: 8mm 12mm !important;
+      }
 
       textarea.f {
+        display: block !important;
+        position: relative !important;
         height: auto !important;
-        min-height: 3cm !important;
+        min-height: 5cm !important;
         max-height: none !important;
         overflow: visible !important;
-        border: 1px solid #000 !important;
+        overflow-y: visible !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        hyphens: auto !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid-page !important;
+        break-after: auto !important;
+
+        border: 1px solid #333 !important;
         background: white !important;
-        padding: 6mm 4mm !important;
-        margin: 2mm 0 !important;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        word-break: break-word;
-        line-height: 1.5;
-        font-size: 10.8pt;
-        break-inside: avoid;
-        page-break-inside: avoid;
+        padding: 6mm 5mm !important;
+        margin: 4mm 0 6mm 0 !important;
+        font-size: 10.8pt !important;
+        line-height: 1.5 !important;
+        box-sizing: border-box !important;
       }
 
-      .sec, .sec-body, .diag-list {
-        break-inside: avoid-page;
-        page-break-inside: avoid;
-        margin-bottom: 8mm;
-      }
-
-      .diag-item {
-        break-inside: avoid;
+      .sec, .sec-body, .diag-list, .diag-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid-page !important;
       }
 
       @page {
-        margin: 12mm 10mm;
         size: A4 portrait;
+        margin: 12mm 10mm 14mm 10mm;
       }
 
       * {
-        hyphens: auto;
-        overflow-wrap: break-word;
-        word-break: break-word;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        hyphens: auto !important;
       }
     }
   </style>
