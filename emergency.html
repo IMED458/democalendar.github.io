@@ -6,18 +6,233 @@
   <title>ემერჯენსის გასინჯვის ფურცელი</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="icd10.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",
+      authDomain: "clinic-inpatient.firebaseapp.com",
+      projectId: "clinic-inpatient",
+      storageBucket: "clinic-inpatient.firebasestorage.app",
+      messagingSenderId: "586729386322",
+      appId: "1:586729386322:web:17a92324784c2c988a4a8b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ── URL პარამეტრები index.html-დან ────────────────────────────────────────
+    const params = new URLSearchParams(location.search);
+    const pid     = params.get('pid') || '';
+    const room    = params.get('room') || '';
+    const name    = decodeURIComponent(params.get('name') || '');
+    const bed     = decodeURIComponent(params.get('bed') || '');
+    const history = decodeURIComponent(params.get('history') || '');
+    const pidNum  = decodeURIComponent(params.get('personal_id') || '');
+    const dob     = decodeURIComponent(params.get('dob') || '');
+    const address = decodeURIComponent(params.get('address') || '');
+    const admitDt = decodeURIComponent(params.get('admit_dt') || '');
+    const doctor  = decodeURIComponent(params.get('doctor') || '');
+
+    const docId = pid && room ? `${room}_${pid}` : null;
+
+    // ── UI შევსება ─────────────────────────────────────────────────────────────
+    document.getElementById('pb-name').textContent = name || 'პაციენტი';
+    const infParts = [];
+    if (bed) infParts.push(`საწ. ${bed}`);
+    if (history) infParts.push(`ისტ. ${history}`);
+    if (room) infParts.push(room);
+    document.getElementById('pb-info').textContent = infParts.join(' · ');
+
+    document.getElementById('inf-name').textContent = name || '—';
+    document.getElementById('inf-pid').textContent = pidNum || '—';
+    document.getElementById('inf-dob').textContent = dob || '—';
+    document.getElementById('inf-addr').textContent = address || '—';
+
+    // ასაკი
+    if (dob) {
+      const age = calcAge(dob);
+      if (age) document.getElementById('inf-age').textContent = `(${age})`;
+    }
+
+    // შემოსვლის თარიღი და დრო გაყოფილი
+    let admitDate = '';
+    let admitTime = '';
+    if (admitDt) {
+      const parts = admitDt.split('T');
+      admitDate = parts[0] || '';
+      admitTime = parts[1] ? parts[1].slice(0,5) : '';
+    }
+    document.getElementById('admit-date').value = admitDate;
+    document.getElementById('admit-time').value = admitTime;
+    document.getElementById('inf-admit').textContent = admitDt ? admitDt.replace('T', ' ') : '—';
+
+    document.getElementById('doctor').value = doctor || '';
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function calcAge(dStr) {
+      if (!dStr) return '';
+      const d = new Date(dStr);
+      if (isNaN(d)) return '';
+      let age = new Date().getFullYear() - d.getFullYear();
+      const m = new Date().getMonth() - d.getMonth();
+      if (m < 0 || (m === 0 && new Date().getDate() < d.getDate())) age--;
+      return age >= 0 ? age + ' წ.' : '';
+    }
+
+    function esc(t) {
+      if (!t) return '';
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    function showToast(msg, err = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (err ? ' err' : '');
+      setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    // ავტო-ზომა textarea-ებისთვის
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
+    document.querySelectorAll('textarea.f').forEach(ta => {
+      ta.addEventListener('input', () => autoResize(ta));
+      autoResize(ta);
+    });
+
+    // სექციის გახსნა/დახურვა
+    window.toggleSec = function(id) {
+      document.getElementById(id).classList.toggle('open');
+    };
+
+    // ── დიაგნოზები ──────────────────────────────────────────────────────────────
+    let diagnoses = [];
+
+    function renderDiags() {
+      const list = document.getElementById('diag-list');
+      list.innerHTML = diagnoses.map((d, i) => `
+        <div class="diag-item">
+          ${d.code ? `<span class="code">${esc(d.code)}</span>` : ''}
+          <span class="name">${esc(d.name)}</span>
+          <button class="rm" onclick="rmDiag(${i})">×</button>
+        </div>
+      `).join('');
+      if (diagnoses.length) document.getElementById('sec-diag').classList.add('open');
+    }
+
+    window.rmDiag = i => {
+      diagnoses.splice(i, 1);
+      renderDiags();
+      saveData();
+    };
+
+    window.addDiag = () => {
+      const code = document.getElementById('diag-code').value.trim().toUpperCase();
+      const name = document.getElementById('diag-name').value.trim();
+      if (!code && !name) {
+        showToast('შეიყვანეთ კოდი ან დასახელება', true);
+        return;
+      }
+      diagnoses.push({ code, name });
+      renderDiags();
+      document.getElementById('diag-code').value = '';
+      document.getElementById('diag-name').value = '';
+      saveData();
+    };
+
+    // ── Firebase შენახვა ────────────────────────────────────────────────────────
+    async function saveData() {
+      if (!docId) {
+        showToast('არ არის PID ან ROOM — მონაცემები არ შეინახება', true);
+        return;
+      }
+
+      const admitFull = document.getElementById('admit-date').value && document.getElementById('admit-time').value
+        ? `${document.getElementById('admit-date').value}T${document.getElementById('admit-time').value}`
+        : '';
+
+      const data = {
+        pid: pid,
+        room: room,
+        patientName: name,
+        bed: bed,
+        history: history,
+        personalId: pidNum,
+        dob: dob,
+        address: address,
+        admitDt: admitFull,
+        complaints: document.getElementById('complaints').value.trim(),
+        anamnesis: document.getElementById('anamnesis').value.trim(),
+        dtAdmDate: document.getElementById('admit-date').value,
+        dtAdmTime: document.getElementById('admit-time').value,
+        stAdm: document.getElementById('st-adm').value.trim(),
+        dtTrDate: document.getElementById('tr-date').value,
+        dtTrTime: document.getElementById('tr-time').value,
+        stTr: document.getElementById('st-tr').value.trim(),
+        doctor: document.getElementById('doctor').value.trim(),
+        diagnoses: diagnoses,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        await setDoc(doc(db, 'emergency_sheets', docId), data, { merge: true });
+        const ok = document.getElementById('save-ok');
+        ok.classList.add('show');
+        setTimeout(() => ok.classList.remove('show'), 2500);
+      } catch (err) {
+        showToast('შეცდომა შენახვისას: ' + err.message, true);
+      }
+    }
+
+    // ── მონაცემების ჩატვირთვა Firebase-დან ─────────────────────────────────────
+    if (docId) {
+      onSnapshot(doc(db, 'emergency_sheets', docId), (snap) => {
+        if (!snap.exists()) return;
+        const d = snap.data();
+
+        document.getElementById('complaints').value = d.complaints || '';
+        document.getElementById('anamnesis').value = d.anamnesis || '';
+        document.getElementById('admit-date').value = d.dtAdmDate || (admitDt ? admitDt.split('T')[0] : '');
+        document.getElementById('admit-time').value = d.dtAdmTime || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
+        document.getElementById('st-adm').value = d.stAdm || '';
+        document.getElementById('tr-date').value = d.dtTrDate || '';
+        document.getElementById('tr-time').value = d.dtTrTime || '';
+        document.getElementById('st-tr').value = d.stTr || '';
+        document.getElementById('doctor').value = d.doctor || doctor || '';
+
+        if (Array.isArray(d.diagnoses)) {
+          diagnoses = d.diagnoses;
+          renderDiags();
+        }
+
+        document.querySelectorAll('textarea.f').forEach(autoResize);
+      });
+    }
+
+    document.querySelector('.btn-save').onclick = saveData;
+  </script>
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.5;}
+    body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.55;}
     .topbar{background:#111;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .topbar h1{font-size:1.05rem;font-weight:700;letter-spacing:.3px;}
     .topbar .sub{font-size:.78rem;opacity:.7;font-style:italic;}
     .pbadge{margin-left:auto;font-size:.82rem;line-height:1.6;text-align:right;}
     .pbadge strong{font-size:.95rem;display:block;}
-    .wrap{max-width:900px;margin:0 auto;padding:14px 20px 80px;}
-    /* section */
+    .wrap{max-width:900px;margin:0 auto;padding:14px 20px 90px;}
     .sec{margin-bottom:12px;}
     .sec-title{
       font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
@@ -28,30 +243,28 @@
     .sec-title .arr{font-size:.75rem;color:#888;transition:transform .2s;}
     .sec-body{margin-top:8px;}
     .sec.open .sec-title .arr{transform:rotate(180deg);}
-    /* fields */
     textarea.f{
       width:100%;border:none;border-bottom:1px solid #ccc;outline:none;
       resize:none;overflow:hidden;font-family:inherit;font-size:.95rem;
-      line-height:1.55;padding:6px 2px 4px;background:transparent;
-      min-height:38px;transition:border-color .2s;
+      line-height:1.6;padding:6px 2px 4px;background:transparent;
+      min-height:60px;transition:border-color .2s;
     }
     textarea.f:focus{border-bottom-color:#111;}
-    /* datetime + doctor */
     .col-head{font-size:.82rem;font-weight:700;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
     .col-badge{font-size:.75rem;background:#111;color:#fff;border-radius:3px;padding:1px 6px;font-weight:600;}
     .dt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
-    input[type=datetime-local], input[type=text]{
+    .dt-group{display:flex;flex-direction:column;gap:4px;}
+    input[type="date"], input[type="text"]{
       border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;
       font-size:.9rem;padding:4px 2px;background:transparent;color:#111;
-      transition:border-color .2s;min-width:160px;
+      transition:border-color .2s;min-width:140px;
     }
-    input[type=datetime-local]:focus, input[type=text]:focus{border-bottom-color:#111;}
+    input:focus{border-bottom-color:#111;}
     .now-btn{background:none;border:1px solid #888;border-radius:4px;padding:3px 8px;font-size:.78rem;cursor:pointer;color:#444;}
     .now-btn:hover{background:#111;color:#fff;border-color:#111;}
-    .doctor-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+    .doctor-row{display:flex;align-items:center;gap:10px;margin-top:16px;}
     .doctor-row label{font-size:.85rem;font-weight:600;white-space:nowrap;}
     .doctor-row input{flex:1;max-width:320px;}
-    /* ICD */
     .icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
     .icd-code-wrap{position:relative;width:110px;flex-shrink:0;}
     input.ic{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.95rem;padding:5px 2px;background:transparent;color:#1d4ed8;font-weight:700;}
@@ -68,13 +281,12 @@
     .icd-opt .oc{font-size:.82rem;font-weight:700;color:#1d4ed8;min-width:55px;flex-shrink:0;}
     .icd-opt .on{font-size:.9rem;color:#111;line-height:1.4;}
     .no-res{padding:12px;color:#9ca3af;font-size:.9rem;}
-    .diag-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+    .diag-list{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
     .diag-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f0f0f0;}
-    .diag-item .code{font-size:.82rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:2px 7px;white-space:nowrap;}
+    .diag-item .code{font-size:.82rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:2px 7px;}
     .diag-item .name{flex:1;font-size:.92rem;}
     .diag-item .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.1rem;padding:0 4px;}
     .diag-item .rm:hover{color:#dc2626;}
-    /* actions */
     .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid #e5e7eb;padding:10px 20px;display:flex;gap:12px;justify-content:flex-end;align-items:center;z-index:50;}
     .btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:9px 26px;font-size:.95rem;font-weight:700;cursor:pointer;}
     .btn-save:hover{background:#333;}
@@ -93,6 +305,7 @@
   </style>
 </head>
 <body>
+
 <div class="topbar">
   <div><h1>ემერჯენსის გასინჯვის ფურცელი</h1><div class="sub">Emergency Examination Sheet</div></div>
   <div class="pbadge"><strong id="pb-name">—</strong><span id="pb-info"></span></div>
@@ -100,11 +313,10 @@
 
 <div class="wrap">
 
-  <!-- პაციენტის მონაცემები — always open -->
   <div class="sec open has-content" id="sec-patient">
     <div class="sec-title">პაციენტის მონაცემები</div>
     <div class="sec-body">
-      <table class="inf-table" style="width:100%;border-collapse:collapse;font-size:.92rem;">
+      <table style="width:100%;border-collapse:collapse;font-size:.92rem;">
         <tr>
           <td style="width:140px;color:#555;font-weight:600;padding:4px 0;">სახელი / გვარი:</td>
           <td style="padding:4px 10px;" id="inf-name">—</td>
@@ -125,44 +337,54 @@
     </div>
   </div>
 
-  <!-- ჩივილები -->
   <div class="sec" id="sec-complaints">
     <div class="sec-title" onclick="toggleSec('sec-complaints')">ჩივილები — Complaints <span class="arr">▼</span></div>
     <div class="sec-body">
-      <textarea class="f auto" id="complaints" placeholder="პაციენტის ჩივილები..."></textarea>
+      <textarea class="f" id="complaints" placeholder="პაციენტის ჩივილები..."></textarea>
     </div>
   </div>
 
-  <!-- Anamnesis morbi -->
   <div class="sec" id="sec-anamnesis">
     <div class="sec-title" onclick="toggleSec('sec-anamnesis')">დაავადების ანამნეზი — Anamnesis morbi <span class="arr">▼</span></div>
     <div class="sec-body">
-      <textarea class="f auto" id="anamnesis" placeholder="დაავადების ანამნეზი..."></textarea>
+      <textarea class="f" id="anamnesis" placeholder="დაავადების ანამნეზი..."></textarea>
     </div>
   </div>
 
-  <!-- Status Localis -->
   <div class="sec" id="sec-status">
     <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status Localis <span class="arr">▼</span></div>
     <div class="sec-body">
       <div>
         <div class="col-head"><span class="col-badge">შემოსვლა</span> Admission</div>
         <div class="dt-row">
-          <input type="datetime-local" id="dt-adm" readonly/>
+          <div class="dt-group">
+            <label style="font-size:0.78rem;color:#555;">თარიღი</label>
+            <input type="date" id="admit-date"/>
+          </div>
+          <div class="dt-group">
+            <label style="font-size:0.78rem;color:#555;">დრო</label>
+            <input type="text" id="admit-time" placeholder="მაგ: 14:30"/>
+          </div>
         </div>
-        <textarea class="f auto" id="st-adm" placeholder="შემოსვლის დროს მონაცემები..."></textarea>
+        <textarea class="f" id="st-adm" placeholder="შემოსვლის დროს მონაცემები..."></textarea>
       </div>
 
-      <div style="margin-top:16px;">
+      <div style="margin-top:20px;">
         <div class="col-head"><span class="col-badge">გადაყვანა</span> Transfer</div>
         <div class="dt-row">
-          <input type="datetime-local" id="dt-tr"/>
-          <button class="now-btn" onclick="setNow('dt-tr')">ახლა</button>
+          <div class="dt-group">
+            <label style="font-size:0.78rem;color:#555;">თარიღი</label>
+            <input type="date" id="tr-date"/>
+          </div>
+          <div class="dt-group">
+            <label style="font-size:0.78rem;color:#555;">დრო</label>
+            <input type="text" id="tr-time" placeholder="მაგ: 14:30"/>
+          </div>
+          <button class="now-btn" onclick="setNow('tr-time')">ახლა (დრო)</button>
         </div>
-        <textarea class="f auto" id="st-tr" placeholder="გადაყვანის დროს მონაცემები..."></textarea>
+        <textarea class="f" id="st-tr" placeholder="გადაყვანის დროს მონაცემები..."></textarea>
       </div>
 
-      <!-- ექიმი -->
       <div class="doctor-row">
         <label>ექიმი: სახელი და გვარი</label>
         <input type="text" id="doctor" placeholder="ექიმის სახელი გვარი"/>
@@ -170,17 +392,16 @@
     </div>
   </div>
 
-  <!-- დიაგნოზი -->
   <div class="sec" id="sec-diag">
     <div class="sec-title" onclick="toggleSec('sec-diag')">დიაგნოზი — Diagnosis (ICD-10) <span class="arr">▼</span></div>
     <div class="sec-body">
       <div class="icd-inputs">
         <div class="icd-code-wrap">
-          <input type="text" class="ic" id="diag-code" placeholder="კოდი" maxlength="10" autocomplete="off" oninput="onCodeInput()" onkeydown="onCodeKey(event)"/>
+          <input type="text" class="ic" id="diag-code" placeholder="კოდი" maxlength="10" autocomplete="off"/>
           <div class="icd-dd" id="dd-code"></div>
         </div>
         <div class="icd-name-wrap">
-          <input type="text" class="in" id="diag-name" placeholder="დასახელება ან ძებნა..." autocomplete="off" oninput="onNameInput()" onkeydown="onNameKey(event)"/>
+          <input type="text" class="in" id="diag-name" placeholder="დასახელება ან ძებნა..." autocomplete="off"/>
           <div class="icd-dd" id="dd-name"></div>
         </div>
         <button class="add-btn" onclick="addDiag()">+ დამატება</button>
@@ -194,178 +415,10 @@
 <div class="actions">
   <span class="save-ok" id="save-ok">✓ შენახულია</span>
   <button class="btn-print" onclick="window.print()">🖨 ბეჭდვა</button>
-  <button class="btn-save" onclick="saveData()">შენახვა</button>
+  <button class="btn-save">შენახვა</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
-const firebaseConfig = {apiKey:"AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",authDomain:"clinic-inpatient.firebaseapp.com",projectId:"clinic-inpatient",storageBucket:"clinic-inpatient.firebasestorage.app",messagingSenderId:"586729386322",appId:"1:586729386322:web:17a92324784c2c988a4a8b"};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const P = new URLSearchParams(location.search);
-const PID = P.get('pid') || '';
-const ROOM = P.get('room') || '';
-function dec(k) { return decodeURIComponent(P.get(k) || ''); }
-
-const PNAME       = dec('name');
-const BED         = dec('bed');
-const HIST        = dec('history');
-const PERSONAL_ID = dec('personal_id');
-const DOB         = dec('dob');
-const ADDRESS     = dec('address');
-const ADMIT_DT    = dec('admit_dt');
-const DOCTOR      = dec('doctor');
-
-function pad(n) { return String(n).padStart(2, '0'); }
-function calcAge(d) {
-  if (!d) return '';
-  const b = new Date(d);
-  if (isNaN(b)) return '';
-  let a = new Date().getFullYear() - b.getFullYear();
-  const m = new Date().getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && new Date().getDate() < b.getDate())) a--;
-  return a >= 0 ? a + ' წ.' : '';
-}
-
-function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-
-function showToast(msg, err = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (err ? ' err' : '');
-  setTimeout(() => t.className = 'toast', 3000);
-}
-
-function nowLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function setNow(id) {
-  document.getElementById(id).value = nowLocal();
-}
-
-// fill patient info
-document.getElementById('pb-name').textContent = PNAME || 'პაციენტი';
-const inf = [];
-if (BED) inf.push('საწ. ' + BED);
-if (HIST) inf.push('ისტ. ' + HIST);
-if (ROOM) inf.push(ROOM);
-document.getElementById('pb-info').textContent = inf.join(' · ');
-
-document.getElementById('inf-name').textContent = PNAME || '—';
-document.getElementById('inf-pid').textContent = PERSONAL_ID || '—';
-document.getElementById('inf-dob').textContent = DOB || '—';
-if (DOB) {
-  const a = calcAge(DOB);
-  if (a) document.getElementById('inf-age').textContent = '(' + a + ')';
-}
-document.getElementById('inf-addr').textContent = ADDRESS || '—';
-document.getElementById('inf-admit').textContent = ADMIT_DT ? ADMIT_DT.replace('T', ' ') : '—';
-
-// შემოსვლის დრო ავტომატურად
-if (ADMIT_DT) {
-  document.getElementById('dt-adm').value = ADMIT_DT;
-}
-document.getElementById('doctor').value = DOCTOR || '';
-
-// auto-resize textarea
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
-}
-
-document.querySelectorAll('textarea.f').forEach(ta => {
-  ta.addEventListener('input', () => autoResize(ta));
-  autoResize(ta); // initial
-});
-
-// section toggle
-window.toggleSec = function(id) {
-  const sec = document.getElementById(id);
-  sec.classList.toggle('open');
-};
-
-// ICD10 logic (unchanged) ---------------------------------------------------------
-let ddActiveIdx = -1;
-function searchIcd(q, max = 30) {
-  if (!q) return [];
-  const up = q.toUpperCase().trim();
-  const res = [];
-  for (const [code, name] of Object.entries(ICD10_KA)) {
-    if (res.length >= max) break;
-    if (code.startsWith(up) || name.toLowerCase().includes(q.toLowerCase())) res.push({code, name});
-  }
-  return res;
-}
-// ... (დანარჩენი ICD ლოგიკა უცვლელი რჩება, მხოლოდ აქ არ ჩავსვამთ სიგრძის გამო)
-
-// Firebase save/load (unchanged, მხოლოდ მნიშვნელოვანი ნაწილი)
-const DOC_ID = PID && ROOM ? `${ROOM}_${PID}` : null;
-let loaded = false;
-
-if (DOC_ID) {
-  db.collection('emergency_sheets').doc(DOC_ID).onSnapshot(snap => {
-    if (!snap.exists || loaded) return;
-    loaded = true;
-    const d = snap.data();
-    document.getElementById('complaints').value = d.complaints || '';
-    document.getElementById('anamnesis').value = d.anamnesis || '';
-    document.getElementById('dt-adm').value = d.dtAdm || ADMIT_DT || '';
-    document.getElementById('st-adm').value = d.stAdm || '';
-    document.getElementById('dt-tr').value = d.dtTr || '';
-    document.getElementById('st-tr').value = d.stTr || '';
-    document.getElementById('doctor').value = d.doctor || DOCTOR || '';
-    if (Array.isArray(d.diagnoses)) {
-      diagnoses = d.diagnoses;
-      renderDiags();
-    }
-    document.querySelectorAll('textarea.f').forEach(autoResize);
-  });
-}
-
-async function saveData() {
-  const data = {
-    pid: PID,
-    room: ROOM,
-    patientName: PNAME,
-    bed: BED,
-    history: HIST,
-    personalId: PERSONAL_ID,
-    dob: DOB,
-    address: ADDRESS,
-    admitDt: ADMIT_DT,
-    complaints: document.getElementById('complaints').value,
-    anamnesis: document.getElementById('anamnesis').value,
-    dtAdm: document.getElementById('dt-adm').value,
-    stAdm: document.getElementById('st-adm').value,
-    dtTr: document.getElementById('dt-tr').value,
-    stTr: document.getElementById('st-tr').value,
-    doctor: document.getElementById('doctor').value,
-    diagnoses: diagnoses,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  try {
-    if (DOC_ID) {
-      await db.collection('emergency_sheets').doc(DOC_ID).set(data, {merge: true});
-    } else {
-      localStorage.setItem('emergency_draft', JSON.stringify(data));
-    }
-    const ok = document.getElementById('save-ok');
-    ok.classList.add('show');
-    setTimeout(() => ok.classList.remove('show'), 2500);
-  } catch (err) {
-    showToast('შეცდომა: ' + err.message, true);
-  }
-}
-
-// დანარჩენი ICD ფუნქციები (renderDiags, addDiag, rmDiag და ა.შ.) უცვლელი რჩება
-// თუ გჭირდება მათი სრული ვერსია — მითხარი, დავამატებ
-
-// initial call
-document.querySelectorAll('textarea.f').forEach(autoResize);
-</script>
 </body>
 </html>
