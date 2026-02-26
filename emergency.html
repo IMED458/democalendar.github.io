@@ -1,528 +1,552 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ემერჯენსის გასინჯვის ფურცელი</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICD-10 ავტოშევსება</title>
+<link href="https://fonts.googleapis.com/css2?family=FiraGO:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.58;}
+  :root {
+    --bg: #f5f6fa;
+    --white: #ffffff;
+    --border: #dde1ee;
+    --border-focus: #3b5bdb;
+    --text: #1a1d2e;
+    --muted: #8b92a9;
+    --accent: #3b5bdb;
+    --accent-bg: #eef1fd;
+    --tag-bg: #e8f0fe;
+    --shadow: 0 4px 24px rgba(30,40,80,0.10);
+    --radius-sm: 6px;
+  }
 
-    /* ── TOPBAR: white background, black text ── */
-    .topbar{
-      background:#fff;
-      color:#111;
-      padding:12px 20px 10px;
-      display:flex;
-      align-items:center;
-      gap:16px;
-      flex-wrap:wrap;
-      border-bottom:2.5px solid #111;
-    }
-    .topbar h1{font-size:1.08rem;font-weight:700;letter-spacing:.3px;color:#111;}
-    .pbadge{margin-left:auto;font-size:.82rem;line-height:1.6;text-align:right;color:#111;}
-    .pbadge strong{font-size:.95rem;display:block;color:#111;}
+  body {
+    background: var(--bg);
+    font-family: 'FiraGO', 'Segoe UI', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
 
-    .wrap{max-width:900px;margin:0 auto;padding:14px 20px 100px;}
-    .sec{margin-bottom:14px;}
-    .sec-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#111;border-bottom:1.5px solid #111;padding-bottom:5px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
-    .sec-title .arr{font-size:.75rem;color:#888;transition:transform .2s;}
-    .sec-body{margin-top:9px;}
-    .sec.open .sec-title .arr{transform:rotate(180deg);}
+  .card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    width: 100%;
+    max-width: 700px;
+  }
 
-    /* ── TEXTAREA ── */
-    textarea.f{
-      width:100%;
-      border:1px solid #ddd;
-      outline:none;
-      resize:vertical;
-      overflow:hidden;
-      font-family:inherit;
-      font-size:0.96rem;
-      line-height:1.6;
-      padding:8px 8px 6px;
-      min-height:90px;
-      background:#fafafa;
-      border-radius:4px;
-      transition:border-color .2s;
-      white-space:pre-wrap;
-      word-wrap:break-word;
-      word-break:break-word;
-    }
-    textarea.f:focus{border-color:#111;background:#fff;}
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
 
-    /* ── Print proxy: ბეჭდვისას textarea-ს ანაცვლებს ── */
-    .print-proxy{
-      display:none;
-      width:100%;
-      border:1px solid #555;
-      font-family:inherit;
-      font-size:10.5pt;
-      line-height:1.55;
-      padding:2mm 3mm;
-      margin:2mm 0 3mm 0;
-      background:#fff;
-      white-space:pre-wrap;
-      word-wrap:break-word;
-      word-break:break-word;
-      min-height:0;
-    }
+  .card-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
 
-    .col-head{font-size:.82rem;font-weight:700;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
-    .col-badge{font-size:.75rem;background:#111;color:#fff;border-radius:3px;padding:1px 6px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .dt-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
-    .dt-group{display:flex;flex-direction:column;gap:4px;}
-    input[type="date"],input[type="text"]{border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;font-size:.9rem;padding:5px 3px;background:transparent;color:#111;transition:border-color .2s;min-width:140px;}
-    input:focus{border-bottom-color:#111;}
-    .now-btn{background:none;border:1px solid #888;border-radius:4px;padding:3px 9px;font-size:.78rem;cursor:pointer;color:#444;}
-    .now-btn:hover{background:#111;color:#fff;border-color:#111;}
-    .doctor-row{display:flex;align-items:center;gap:12px;margin:16px 0 10px 0;}
-    .doctor-row label{font-size:0.9rem;font-weight:600;white-space:nowrap;min-width:140px;}
-    .doctor-row input{flex:1;max-width:400px;border:none;border-bottom:1px solid #ccc;padding:6px 3px;font-size:0.96rem;}
-    .doctor-row input:focus{border-bottom-color:#111;}
-    .icd-inputs{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
-    .icd-code-wrap{position:relative;width:115px;flex-shrink:0;}
-    input.ic{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.96rem;padding:6px 3px;background:transparent;color:#1d4ed8;font-weight:700;}
-    input.ic:focus{border-bottom-color:#1d4ed8;}
-    .icd-name-wrap{flex:1;min-width:200px;}
-    input.in{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.96rem;padding:6px 3px;background:transparent;}
-    input.in:focus{border-bottom-color:#111;}
-    .add-btn{background:#111;color:#fff;border:none;border-radius:5px;padding:8px 16px;font-size:.84rem;cursor:pointer;font-weight:600;}
-    .add-btn:hover{background:#333;}
-    .diag-list{margin-top:14px;display:flex;flex-direction:column;gap:7px;}
-    .diag-item{display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid #f0f0f0;}
-    .diag-item .code{font-size:.84rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:3px 8px;}
-    .diag-item .name{flex:1;font-size:.94rem;}
-    .diag-item .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.2rem;padding:0 5px;}
-    .diag-item .rm:hover{color:#dc2626;}
-    .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid #e5e7eb;padding:12px 24px;display:flex;gap:14px;justify-content:flex-end;align-items:center;z-index:50;}
-    .btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:10px 28px;font-size:.96rem;font-weight:700;cursor:pointer;}
-    .btn-save:hover{background:#333;}
-    .btn-print{background:#fff;color:#111;border:1.5px solid #999;border-radius:6px;padding:10px 22px;font-size:.96rem;font-weight:600;cursor:pointer;}
-    .btn-print:hover{background:#f9fafb;}
-    .save-ok{font-size:.86rem;color:#15803d;font-weight:600;opacity:0;transition:opacity .3s;}
-    .save-ok.show{opacity:1;}
-    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 26px;border-radius:8px;font-size:.92rem;opacity:0;transition:all .3s;z-index:999;}
-    .toast.show{opacity:1;}
-    .toast.err{background:#dc2626;}
+  .row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
 
-    /* ══════════════════════════════════════
-       PRINT STYLES
-       textarea იმალება, .print-proxy ჩანს —
-       ამით ტექსტი ვერ გაიჭრება
-    ══════════════════════════════════════ */
-    @media print {
+  .field { flex: 1; position: relative; }
 
-      .actions, .now-btn, .add-btn, .diag-item .rm,
-      .sec-title .arr, .icd-inputs { display:none !important; }
+  .field-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
 
-      body { font-size:10.5pt !important; line-height:1.52 !important; }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-height: 40px;
+  }
 
-      .topbar {
-        border-bottom:2px solid #111 !important;
-        padding:6mm 10mm 5mm !important;
-      }
+  .input-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,91,219,0.10);
+  }
 
-      .wrap {
-        padding:6mm 10mm 10mm !important;
-        max-width:none !important;
-        margin:0 !important;
-      }
+  .icd-prefix {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 0 0.65rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    border-right: 1.5px solid var(--border);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
 
-      textarea.f   { display:none !important; }
-      .print-proxy { display:block !important; }
+  #icd-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    padding: 0.55rem 0.65rem;
+    text-transform: uppercase;
+    background: transparent;
+    min-width: 0;
+  }
 
-      .sec { page-break-inside:avoid; break-inside:avoid; margin-bottom:3mm; }
-      .sec-body { margin-top:2mm; }
-      .diag-list, .diag-item { page-break-inside:avoid; break-inside:avoid; }
+  #icd-input::placeholder {
+    font-family: 'FiraGO', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-transform: none;
+    letter-spacing: 0;
+  }
 
-      .diag-item .code {
-        background:#eff6ff !important;
-        -webkit-print-color-adjust:exact;
-        print-color-adjust:exact;
-      }
-      .col-badge {
-        background:#111 !important;
-        color:#fff !important;
-        -webkit-print-color-adjust:exact;
-        print-color-adjust:exact;
-      }
+  .clear-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 0 0.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
 
-      input[type="date"], input[type="text"] {
-        border:none !important;
-        border-bottom:1px solid #555 !important;
-      }
+  .clear-btn.show { opacity: 1; pointer-events: all; }
+  .clear-btn:hover { color: #e53935; }
 
-      @page { size:A4 portrait; margin:12mm 10mm 14mm 10mm; }
-    }
-  </style>
+  /* Type select */
+  .type-field { min-width: 155px; }
+
+  .custom-select { position: relative; }
+
+  .select-btn {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 2rem 0 0.75rem;
+    background: var(--white);
+    font-family: 'FiraGO', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+    min-height: 40px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .select-btn.open,
+  .select-btn:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,91,219,0.10);
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--muted);
+    transition: transform 0.18s;
+  }
+
+  .select-arrow.open { transform: translateY(-50%) rotate(180deg); }
+
+  .select-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    z-index: 200;
+    overflow: hidden;
+    display: none;
+  }
+
+  .select-dropdown.open { display: block; }
+
+  .select-option {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    color: var(--text);
+  }
+
+  .select-option:hover { background: var(--accent-bg); }
+  .select-option.selected { color: var(--accent); font-weight: 600; background: var(--accent-bg); }
+
+  /* ICD Dropdown */
+  .icd-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    z-index: 100;
+    display: none;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .icd-dropdown.open { display: block; }
+  .icd-dropdown::-webkit-scrollbar { width: 4px; }
+  .icd-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .dd-count {
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding: 0.3rem 0.75rem;
+    background: #f8f9fe;
+    border-bottom: 1px solid #f0f2f8;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .dd-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f2f8;
+    transition: background 0.1s;
+  }
+
+  .dd-item:last-child { border-bottom: none; }
+  .dd-item:hover, .dd-item.active { background: var(--accent-bg); }
+
+  .dd-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--tag-bg);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    min-width: 58px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .dd-name {
+    font-size: 0.83rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .dd-name mark {
+    background: rgba(59,91,219,0.15);
+    color: var(--accent);
+    border-radius: 2px;
+    padding: 0 1px;
+    font-style: normal;
+  }
+
+  .dd-empty {
+    padding: 1rem 0.75rem;
+    color: var(--muted);
+    font-size: 0.83rem;
+    text-align: center;
+  }
+
+  /* Result */
+  .result {
+    margin-top: 1.1rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    display: none;
+    background: #fafbff;
+    gap: 0.75rem;
+    animation: fadeUp 0.18s ease;
+  }
+
+  .result.show { display: flex; align-items: flex-start; flex-wrap: wrap; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-code-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--tag-bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .result-body { flex: 1; min-width: 0; }
+
+  .result-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .result-type {
+    margin-top: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .result-type-val {
+    color: var(--accent);
+    font-weight: 600;
+  }
+</style>
 </head>
 <body>
+<div class="card">
+  <div class="card-title">ICD-10 დიაგნოზი</div>
+  <div class="card-sub">ჩაწერეთ კოდი ან სახელი — დიაგნოზი შეივსება ავტომატურად</div>
 
-<div class="topbar">
-  <div><h1>ემერჯენსის გასინჯვის ფურცელი</h1></div>
-  <div class="pbadge">
-    <strong id="pb-name">—</strong>
-    <span id="pb-info"></span>
+  <div class="row">
+    <!-- ICD Code Field -->
+    <div class="field" id="icd-field">
+      <label class="field-label" for="icd-input">კოდი / დიაგნოზი</label>
+      <div class="input-wrap">
+        <span class="icd-prefix">ICD-10</span>
+        <input id="icd-input" type="text" placeholder="მაგ: R10.4 ან მუცლის ტკივილი..." autocomplete="off" spellcheck="false">
+        <button class="clear-btn" id="clear-btn" type="button" title="გასუფთავება">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="icd-dropdown" id="icd-dropdown"></div>
+    </div>
+
+    <!-- Diagnosis Type -->
+    <div class="field type-field">
+      <label class="field-label">სახეობა</label>
+      <div class="custom-select" id="type-select">
+        <button class="select-btn" id="type-btn" type="button">— აირჩიეთ —</button>
+        <svg class="select-arrow" id="type-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="select-dropdown" id="type-dropdown">
+          <div class="select-option" data-value="">— აირჩიეთ —</div>
+          <div class="select-option" data-value="მწვავე">მწვავე</div>
+          <div class="select-option" data-value="თანმხლები">თანმხლები</div>
+          <div class="select-option" data-value="ქრონიკული">ქრონიკული</div>
+          <div class="select-option" data-value="ქვემწვავე">ქვემწვავე</div>
+          <div class="select-option" data-value="გართულება">გართულება</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result panel -->
+  <div class="result" id="result-panel">
+    <div class="result-code-badge" id="res-code"></div>
+    <div class="result-body">
+      <div class="result-name" id="res-name"></div>
+      <div class="result-type" id="res-type"></div>
+    </div>
   </div>
 </div>
 
-<div class="wrap">
-
-  <div class="sec open" id="sec-patient">
-    <div class="sec-title">პაციენტის მონაცემები</div>
-    <div class="sec-body">
-      <table style="width:100%;border-collapse:collapse;font-size:.94rem;">
-        <tr>
-          <td style="width:140px;color:#555;font-weight:600;padding:5px 0;">სახელი / გვარი:</td>
-          <td style="padding:5px 12px;" id="inf-name">—</td>
-          <td style="width:120px;color:#555;font-weight:600;padding:5px 0;">პირადი ნომ.:</td>
-          <td style="padding:5px 12px;" id="inf-pid">—</td>
-        </tr>
-        <tr>
-          <td style="color:#555;font-weight:600;padding:5px 0;">დ/თ:</td>
-          <td style="padding:5px 12px;"><span id="inf-dob">—</span> <span id="inf-age" style="color:#1d4ed8;font-weight:700;"></span></td>
-          <td style="color:#555;font-weight:600;padding:5px 0;">მისამართი:</td>
-          <td style="padding:5px 12px;" id="inf-addr">—</td>
-        </tr>
-        <tr>
-          <td style="color:#555;font-weight:600;padding:5px 0;">სტაციონარში:</td>
-          <td style="padding:5px 12px;" id="inf-admit" colspan="3">—</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-
-  <div class="sec" id="sec-complaints">
-    <div class="sec-title" onclick="toggleSec('sec-complaints')">ჩივილები <span class="arr">▼</span></div>
-    <div class="sec-body">
-      <textarea class="f" id="complaints" placeholder="პაციენტის ჩივილები..."></textarea>
-      <div class="print-proxy" id="complaints-proxy"></div>
-    </div>
-  </div>
-
-  <div class="sec" id="sec-anamnesis">
-    <div class="sec-title" onclick="toggleSec('sec-anamnesis')">დაავადების ანამნეზი <span class="arr">▼</span></div>
-    <div class="sec-body">
-      <textarea class="f" id="anamnesis" placeholder="დაავადების ანამნეზი..."></textarea>
-      <div class="print-proxy" id="anamnesis-proxy"></div>
-    </div>
-  </div>
-
-  <div class="sec" id="sec-status">
-    <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status localis <span class="arr">▼</span></div>
-    <div class="sec-body">
-      <div>
-        <div class="col-head"><span class="col-badge">შემოსვლა</span></div>
-        <div class="dt-row">
-          <div class="dt-group">
-            <label style="font-size:0.78rem;color:#555;">თარიღი</label>
-            <input type="date" id="admit-date"/>
-          </div>
-          <div class="dt-group">
-            <label style="font-size:0.78rem;color:#555;">დრო</label>
-            <input type="text" id="admit-time" placeholder="მაგ: 14:30"/>
-          </div>
-        </div>
-        <textarea class="f" id="st-adm" placeholder="შემოსვლის დროს მონაცემები..."></textarea>
-        <div class="print-proxy" id="st-adm-proxy"></div>
-        <div class="doctor-row">
-          <label>ექიმი:</label>
-          <input type="text" id="doctor-adm" placeholder="სახელი გვარი"/>
-        </div>
-      </div>
-
-      <div style="margin-top:32px;">
-        <div class="col-head"><span class="col-badge">გადაყვანა</span></div>
-        <div class="dt-row">
-          <div class="dt-group">
-            <label style="font-size:0.78rem;color:#555;">თარიღი</label>
-            <input type="date" id="tr-date"/>
-          </div>
-          <div class="dt-group">
-            <label style="font-size:0.78rem;color:#555;">დრო</label>
-            <input type="text" id="tr-time" placeholder="მაგ: 14:30"/>
-          </div>
-          <button class="now-btn" onclick="setNow('tr-time')">ახლა</button>
-        </div>
-        <textarea class="f" id="st-tr" placeholder="გადაყვანის დროს მონაცემები..."></textarea>
-        <div class="print-proxy" id="st-tr-proxy"></div>
-        <div class="doctor-row">
-          <label>ექიმი:</label>
-          <input type="text" id="doctor-tr" placeholder="სახელი გვარი"/>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sec" id="sec-diag">
-    <div class="sec-title" onclick="toggleSec('sec-diag')">დიაგნოზი — Diagnosis (ICD-10) <span class="arr">▼</span></div>
-    <div class="sec-body">
-      <div class="icd-inputs">
-        <div class="icd-code-wrap">
-          <input type="text" class="ic" id="diag-code" placeholder="კოდი" maxlength="10" autocomplete="off"/>
-        </div>
-        <div class="icd-name-wrap">
-          <input type="text" class="in" id="diag-name" placeholder="დასახელება ან ძებნა..." autocomplete="off"/>
-        </div>
-        <button class="add-btn" onclick="addDiag()">+ დამატება</button>
-      </div>
-      <div class="diag-list" id="diag-list"></div>
-    </div>
-  </div>
-
-  <div class="sec" id="sec-treating-doctor">
-    <div class="sec-title">მკურნალი ექიმი</div>
-    <div class="sec-body">
-      <div class="doctor-row" style="margin-top:6px;">
-        <label>სახელი გვარი:</label>
-        <input type="text" id="doctor-main" placeholder="მკურნალი ექიმის სახელი გვარი"/>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<div class="actions">
-  <span class="save-ok" id="save-ok">✓ შენახულია</span>
-  <button class="btn-print" onclick="window.print()">🖨 ბეჭდვა</button>
-  <button class="btn-save">შენახვა</button>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- ICD-10 მონაცემები: icd10.js უნდა განსაზღვრავდეს გლობალურ icd10Data ობიექტს -->
+<!-- icd10.js must be in the same directory -->
 <script src="icd10.js"></script>
+<script>
+(function () {
+  let selectedCode = null;
+  let selectedName = null;
+  let selectedType = '';
+  let activeIdx = -1;
+  let filteredItems = [];
+  const MAX = 60;
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  import {
-    getFirestore, doc, setDoc, onSnapshot, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  const input      = document.getElementById('icd-input');
+  const dropdown   = document.getElementById('icd-dropdown');
+  const clearBtn   = document.getElementById('clear-btn');
+  const resultPanel= document.getElementById('result-panel');
+  const resCode    = document.getElementById('res-code');
+  const resName    = document.getElementById('res-name');
+  const resType    = document.getElementById('res-type');
+  const typeBtn    = document.getElementById('type-btn');
+  const typeArrow  = document.getElementById('type-arrow');
+  const typeDropdown = document.getElementById('type-dropdown');
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",
-    authDomain: "clinic-inpatient.firebaseapp.com",
-    projectId: "clinic-inpatient",
-    storageBucket: "clinic-inpatient.firebasestorage.app",
-    messagingSenderId: "586729386322",
-    appId: "1:586729386322:web:17a92324784c2c988a4a8b"
-  };
+  // Build array from ICD10_KA object
+  const entries = Object.entries(ICD10_KA).map(([code, name]) => ({ code, name }));
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
-  const params  = new URLSearchParams(location.search);
-  const pid     = params.get('pid') || '';
-  const room    = params.get('room') || '';
-  const name    = decodeURIComponent(params.get('name') || '');
-  const bed     = decodeURIComponent(params.get('bed') || '');
-  const history = decodeURIComponent(params.get('history') || '');
-  const pidNum  = decodeURIComponent(params.get('personal_id') || '');
-  const dob     = decodeURIComponent(params.get('dob') || '');
-  const address = decodeURIComponent(params.get('address') || '');
-  const admitDt = decodeURIComponent(params.get('admit_dt') || '');
-  const doctor  = decodeURIComponent(params.get('doctor') || '');
-  const docId   = pid && room ? `${room}_${pid}` : null;
-
-  document.getElementById('pb-name').textContent = name || 'პაციენტი';
-  const infParts = [];
-  if (bed)     infParts.push(`საწ. ${bed}`);
-  if (history) infParts.push(`ისტ. ${history}`);
-  if (room)    infParts.push(room);
-  document.getElementById('pb-info').textContent = infParts.join(' · ');
-
-  document.getElementById('inf-name').textContent = name    || '—';
-  document.getElementById('inf-pid').textContent  = pidNum  || '—';
-  document.getElementById('inf-dob').textContent  = dob     || '—';
-  document.getElementById('inf-addr').textContent = address || '—';
-
-  if (dob) {
-    const age = calcAge(dob);
-    if (age) document.getElementById('inf-age').textContent = `(${age})`;
-  }
-
-  let admitDate = '', admitTime = '';
-  if (admitDt) {
-    const parts = admitDt.split('T');
-    admitDate = parts[0] || '';
-    admitTime = parts[1] ? parts[1].slice(0,5) : '';
-  }
-  document.getElementById('admit-date').value = admitDate;
-  document.getElementById('admit-time').value = admitTime;
-  document.getElementById('inf-admit').textContent = admitDt ? admitDt.replace('T', ' ') : '—';
-
-  function calcAge(dStr) {
-    if (!dStr) return '';
-    const d = new Date(dStr);
-    if (isNaN(d)) return '';
-    let age = new Date().getFullYear() - d.getFullYear();
-    const m = new Date().getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && new Date().getDate() < d.getDate())) age--;
-    return age >= 0 ? age + ' წ.' : '';
-  }
-
-  function esc(t) {
-    if (!t) return '';
-    const d = document.createElement('div');
-    d.textContent = t;
-    return d.innerHTML;
-  }
-
-  function showToast(msg, err = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show' + (err ? ' err' : '');
-    setTimeout(() => t.className = 'toast', 3000);
-  }
-
-  // ── Textarea auto-resize ──
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = (el.scrollHeight + 4) + 'px';
-  }
-
-  // ── Proxy sync: textarea → print div ──
-  function syncProxy(ta) {
-    const proxy = document.getElementById(ta.id + '-proxy');
-    if (proxy) proxy.textContent = ta.value;
-  }
-
-  function syncAllProxies() {
-    document.querySelectorAll('textarea.f').forEach(syncProxy);
-  }
-
-  document.querySelectorAll('textarea.f').forEach(ta => {
-    ta.addEventListener('input', () => { autoResize(ta); syncProxy(ta); });
-    autoResize(ta);
-  });
-
-  window.toggleSec = function(id) {
-    document.getElementById(id).classList.toggle('open');
-  };
-
-  // ── ICD-10 ძებნა: მხარს უჭერს icd10Data ან icd10 გლობალურ ობიექტებს ──
-  function getIcdName(code) {
-    if (!code) return '';
-    const upper = code.trim().toUpperCase();
-    // ვცდილობთ ყველა შესაძლო ობიექტს
-    const src = (typeof icd10Data !== 'undefined' && icd10Data)
-             || (typeof icd10 !== 'undefined' && icd10)
-             || null;
-    if (!src) return '';
-    return src[upper] || src[code.trim()] || '';
-  }
-
-  let diagnoses = [];
-
-  function renderDiags() {
-    const list = document.getElementById('diag-list');
-    list.innerHTML = diagnoses.map((d, i) => `
-      <div class="diag-item">
-        ${d.code ? `<span class="code">${esc(d.code)}</span>` : ''}
-        <span class="name">${esc(d.name)}</span>
-        <button class="rm" onclick="rmDiag(${i})">×</button>
-      </div>
-    `).join('');
-    if (diagnoses.length) document.getElementById('sec-diag').classList.add('open');
-  }
-
-  window.rmDiag = i => {
-    diagnoses.splice(i, 1);
-    renderDiags();
-    saveData();
-  };
-
-  window.addDiag = () => {
-    const code = document.getElementById('diag-code').value.trim().toUpperCase();
-    let dname  = document.getElementById('diag-name').value.trim();
-    if (!dname && code) dname = getIcdName(code);
-    if (!code && !dname) { showToast('შეიყვანეთ კოდი ან დასახელება', true); return; }
-    diagnoses.push({ code, name: dname });
-    renderDiags();
-    document.getElementById('diag-code').value = '';
-    document.getElementById('diag-name').value = '';
-    saveData();
-  };
-
-  // ── ICD კოდი → ავტომატური სახელი ──
-  document.getElementById('diag-code').addEventListener('input', function() {
-    const code = this.value.trim().toUpperCase();
-    const nameInp = document.getElementById('diag-name');
-    if (code.length >= 3) {
-      const found = getIcdName(code);
-      if (found) nameInp.value = found;
-    } else if (code.length === 0) {
-      nameInp.value = '';
+  function search(q) {
+    const uq = q.toUpperCase();
+    const res = [];
+    for (const e of entries) {
+      if (e.code.toUpperCase().includes(uq) || e.name.includes(q) || e.name.toUpperCase().includes(uq)) {
+        res.push(e);
+        if (res.length >= MAX) break;
+      }
     }
-  });
+    return res;
+  }
 
-  async function saveData() {
-    syncAllProxies();
-    if (!docId) { showToast('არ არის PID ან ROOM — მონაცემები არ შეინახება', true); return; }
-
-    const admitFull = document.getElementById('admit-date').value && document.getElementById('admit-time').value
-      ? `${document.getElementById('admit-date').value}T${document.getElementById('admit-time').value}` : '';
-
-    const data = {
-      pid, room, patientName: name, bed, history, personalId: pidNum, dob, address,
-      admitDt: admitFull,
-      complaints:  document.getElementById('complaints').value.trim(),
-      anamnesis:   document.getElementById('anamnesis').value.trim(),
-      dtAdmDate:   document.getElementById('admit-date').value,
-      dtAdmTime:   document.getElementById('admit-time').value,
-      stAdm:       document.getElementById('st-adm').value.trim(),
-      doctorAdm:   document.getElementById('doctor-adm').value.trim(),
-      dtTrDate:    document.getElementById('tr-date').value,
-      dtTrTime:    document.getElementById('tr-time').value,
-      stTr:        document.getElementById('st-tr').value.trim(),
-      doctorTr:    document.getElementById('doctor-tr').value.trim(),
-      doctorMain:  document.getElementById('doctor-main').value.trim(),
-      diagnoses,
-      updatedAt:   serverTimestamp()
-    };
-
+  function hl(text, q) {
+    if (!q) return text;
     try {
-      await setDoc(doc(db, 'emergency_sheets', docId), data, { merge: true });
-      document.getElementById('save-ok').classList.add('show');
-      setTimeout(() => document.getElementById('save-ok').classList.remove('show'), 2500);
-    } catch (err) {
-      showToast('შეცდომა შენახვისას: ' + err.message, true);
+      return text.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+    } catch { return text; }
+  }
+
+  function renderDD(q) {
+    filteredItems = search(q);
+    activeIdx = -1;
+
+    if (!filteredItems.length) {
+      dropdown.innerHTML = '<div class="dd-empty">შედეგი ვერ მოიძებნა</div>';
+    } else {
+      dropdown.innerHTML =
+        `<div class="dd-count">${filteredItems.length} შედეგი${filteredItems.length === MAX ? ' (მაქსიმუმი)' : ''}</div>` +
+        filteredItems.map((item, i) =>
+          `<div class="dd-item" data-i="${i}">
+            <span class="dd-code">${hl(item.code, q)}</span>
+            <span class="dd-name">${hl(item.name, q)}</span>
+          </div>`
+        ).join('');
+
+      dropdown.querySelectorAll('.dd-item').forEach(el => {
+        el.addEventListener('mousedown', e => {
+          e.preventDefault();
+          pick(+el.dataset.i);
+        });
+      });
     }
+    dropdown.classList.add('open');
   }
 
-  if (docId) {
-    onSnapshot(doc(db, 'emergency_sheets', docId), (snap) => {
-      if (!snap.exists()) return;
-      const d = snap.data();
-      document.getElementById('complaints').value  = d.complaints || '';
-      document.getElementById('anamnesis').value   = d.anamnesis  || '';
-      document.getElementById('admit-date').value  = d.dtAdmDate  || (admitDt ? admitDt.split('T')[0] : '');
-      document.getElementById('admit-time').value  = d.dtAdmTime  || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
-      document.getElementById('st-adm').value      = d.stAdm      || '';
-      document.getElementById('doctor-adm').value  = d.doctorAdm  || '';
-      document.getElementById('tr-date').value     = d.dtTrDate   || '';
-      document.getElementById('tr-time').value     = d.dtTrTime   || '';
-      document.getElementById('st-tr').value       = d.stTr       || '';
-      document.getElementById('doctor-tr').value   = d.doctorTr   || '';
-      document.getElementById('doctor-main').value = d.doctorMain || doctor || '';
-      if (Array.isArray(d.diagnoses)) { diagnoses = d.diagnoses; renderDiags(); }
-      document.querySelectorAll('textarea.f').forEach(ta => { autoResize(ta); syncProxy(ta); });
+  function closeDD() {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '';
+    activeIdx = -1;
+  }
+
+  function pick(idx) {
+    const item = filteredItems[idx];
+    if (!item) return;
+    selectedCode = item.code;
+    selectedName = item.name;
+    input.value = item.code;
+    clearBtn.classList.add('show');
+    closeDD();
+    updateResult();
+  }
+
+  function updateResult() {
+    if (!selectedCode) { resultPanel.classList.remove('show'); return; }
+    resCode.textContent = selectedCode;
+    resName.textContent = selectedName;
+    resType.innerHTML = selectedType
+      ? `სახეობა: <span class="result-type-val">${selectedType}</span>`
+      : '';
+    resultPanel.classList.add('show');
+  }
+
+  // Input
+  input.addEventListener('input', () => {
+    const v = input.value.trim();
+    clearBtn.classList.toggle('show', v.length > 0);
+    selectedCode = null; selectedName = null;
+    resultPanel.classList.remove('show');
+    v ? renderDD(v) : closeDD();
+  });
+
+  input.addEventListener('focus', () => { if (input.value.trim()) renderDD(input.value.trim()); });
+  input.addEventListener('blur', () => setTimeout(closeDD, 160));
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.dd-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx+1, items.length-1); setActive(items); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); setActive(items); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) pick(activeIdx); else if (filteredItems.length===1) pick(0); }
+    else if (e.key === 'Escape') closeDD();
+  });
+
+  function setActive(items) {
+    items.forEach((el,i) => el.classList.toggle('active', i===activeIdx));
+    if (activeIdx>=0) items[activeIdx].scrollIntoView({block:'nearest'});
+  }
+
+  clearBtn.addEventListener('click', () => {
+    input.value=''; selectedCode=null; selectedName=null;
+    clearBtn.classList.remove('show');
+    resultPanel.classList.remove('show');
+    closeDD(); input.focus();
+  });
+
+  // Type select
+  typeBtn.addEventListener('click', () => {
+    const open = typeDropdown.classList.toggle('open');
+    typeBtn.classList.toggle('open', open);
+    typeArrow.classList.toggle('open', open);
+  });
+
+  typeDropdown.querySelectorAll('.select-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      selectedType = opt.dataset.value;
+      typeBtn.textContent = opt.textContent;
+      typeDropdown.querySelectorAll('.select-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      typeDropdown.classList.remove('open');
+      typeBtn.classList.remove('open');
+      typeArrow.classList.remove('open');
+      updateResult();
     });
-  }
+  });
 
-  document.querySelector('.btn-save').onclick = saveData;
-
-  window.setNow = function(id) {
-    const now = new Date();
-    document.getElementById(id).value =
-      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  };
-
-  window.addEventListener('beforeprint', syncAllProxies);
+  document.addEventListener('click', e => {
+    if (!document.getElementById('type-select').contains(e.target)) {
+      typeDropdown.classList.remove('open');
+      typeBtn.classList.remove('open');
+      typeArrow.classList.remove('open');
+    }
+  });
+})();
 </script>
-
 </body>
 </html>
