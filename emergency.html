@@ -28,22 +28,21 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ── URL პარამეტრები index.html-დან ────────────────────────────────────────
+    // URL პარამეტრები
     const params = new URLSearchParams(location.search);
-    const pid     = params.get('pid') || '';
-    const room    = params.get('room') || '';
-    const name    = decodeURIComponent(params.get('name') || '');
-    const bed     = decodeURIComponent(params.get('bed') || '');
+    const pid = params.get('pid') || '';
+    const room = params.get('room') || '';
+    const name = decodeURIComponent(params.get('name') || '');
+    const bed = decodeURIComponent(params.get('bed') || '');
     const history = decodeURIComponent(params.get('history') || '');
-    const pidNum  = decodeURIComponent(params.get('personal_id') || '');
-    const dob     = decodeURIComponent(params.get('dob') || '');
+    const pidNum = decodeURIComponent(params.get('personal_id') || '');
+    const dob = decodeURIComponent(params.get('dob') || '');
     const address = decodeURIComponent(params.get('address') || '');
     const admitDt = decodeURIComponent(params.get('admit_dt') || '');
-    const doctor  = decodeURIComponent(params.get('doctor') || '');
-
+    const doctor = decodeURIComponent(params.get('doctor') || ''); // უკან დაბრუნებისთვის
     const docId = pid && room ? `${room}_${pid}` : null;
 
-    // ── UI შევსება ─────────────────────────────────────────────────────────────
+    // UI შევსება
     document.getElementById('pb-name').textContent = name || 'პაციენტი';
     const infParts = [];
     if (bed) infParts.push(`საწ. ${bed}`);
@@ -56,13 +55,13 @@
     document.getElementById('inf-dob').textContent = dob || '—';
     document.getElementById('inf-addr').textContent = address || '—';
 
-    // ასაკი
+    // ასაკის გამოთვლა
     if (dob) {
       const age = calcAge(dob);
       if (age) document.getElementById('inf-age').textContent = `(${age})`;
     }
 
-    // შემოსვლის თარიღი და დრო გაყოფილი
+    // შემოსვლის თარიღი/დრო
     let admitDate = '';
     let admitTime = '';
     if (admitDt) {
@@ -74,9 +73,8 @@
     document.getElementById('admit-time').value = admitTime;
     document.getElementById('inf-admit').textContent = admitDt ? admitDt.replace('T', ' ') : '—';
 
-    document.getElementById('doctor').value = doctor || '';
-
     function pad(n) { return n.toString().padStart(2, '0'); }
+
     function calcAge(dStr) {
       if (!dStr) return '';
       const d = new Date(dStr);
@@ -101,7 +99,6 @@
       setTimeout(() => t.className = 'toast', 3000);
     }
 
-    // ავტო-ზომა textarea-ებისთვის
     function autoResize(el) {
       el.style.height = 'auto';
       el.style.height = el.scrollHeight + 'px';
@@ -112,12 +109,11 @@
       autoResize(ta);
     });
 
-    // სექციის გახსნა/დახურვა
     window.toggleSec = function(id) {
       document.getElementById(id).classList.toggle('open');
     };
 
-    // ── დიაგნოზები ──────────────────────────────────────────────────────────────
+    // დიაგნოზები
     let diagnoses = [];
 
     function renderDiags() {
@@ -152,7 +148,7 @@
       saveData();
     };
 
-    // ── Firebase შენახვა ────────────────────────────────────────────────────────
+    // შენახვა
     async function saveData() {
       if (!docId) {
         showToast('არ არის PID ან ROOM — მონაცემები არ შეინახება', true);
@@ -178,10 +174,12 @@
         dtAdmDate: document.getElementById('admit-date').value,
         dtAdmTime: document.getElementById('admit-time').value,
         stAdm: document.getElementById('st-adm').value.trim(),
+        doctorAdm: document.getElementById('doctor-adm').value.trim(),
         dtTrDate: document.getElementById('tr-date').value,
         dtTrTime: document.getElementById('tr-time').value,
         stTr: document.getElementById('st-tr').value.trim(),
-        doctor: document.getElementById('doctor').value.trim(),
+        doctorTr: document.getElementById('doctor-tr').value.trim(),
+        doctorMain: document.getElementById('doctor-main').value.trim(),
         diagnoses: diagnoses,
         updatedAt: serverTimestamp()
       };
@@ -196,7 +194,7 @@
       }
     }
 
-    // ── მონაცემების ჩატვირთვა Firebase-დან ─────────────────────────────────────
+    // ჩატვირთვა
     if (docId) {
       onSnapshot(doc(db, 'emergency_sheets', docId), (snap) => {
         if (!snap.exists()) return;
@@ -204,13 +202,19 @@
 
         document.getElementById('complaints').value = d.complaints || '';
         document.getElementById('anamnesis').value = d.anamnesis || '';
+
         document.getElementById('admit-date').value = d.dtAdmDate || (admitDt ? admitDt.split('T')[0] : '');
         document.getElementById('admit-time').value = d.dtAdmTime || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
+
         document.getElementById('st-adm').value = d.stAdm || '';
+        document.getElementById('doctor-adm').value = d.doctorAdm || '';
+
         document.getElementById('tr-date').value = d.dtTrDate || '';
         document.getElementById('tr-time').value = d.dtTrTime || '';
         document.getElementById('st-tr').value = d.stTr || '';
-        document.getElementById('doctor').value = d.doctor || doctor || '';
+        document.getElementById('doctor-tr').value = d.doctorTr || '';
+
+        document.getElementById('doctor-main').value = d.doctorMain || d.doctor || '';
 
         if (Array.isArray(d.diagnoses)) {
           diagnoses = d.diagnoses;
@@ -222,6 +226,14 @@
     }
 
     document.querySelector('.btn-save').onclick = saveData;
+
+    // ახლა დროის ღილაკი
+    window.setNow = function(id) {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById(id).value = `${h}:${m}`;
+    };
   </script>
 
   <style>
@@ -234,37 +246,24 @@
     .pbadge strong{font-size:.95rem;display:block;}
     .wrap{max-width:900px;margin:0 auto;padding:14px 20px 90px;}
     .sec{margin-bottom:12px;}
-    .sec-title{
-      font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
-      color:#111;border-bottom:1.5px solid #111;padding-bottom:4px;
-      cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-      user-select:none;
-    }
+    .sec-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#111;border-bottom:1.5px solid #111;padding-bottom:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
     .sec-title .arr{font-size:.75rem;color:#888;transition:transform .2s;}
     .sec-body{margin-top:8px;}
     .sec.open .sec-title .arr{transform:rotate(180deg);}
-    textarea.f{
-      width:100%;border:none;border-bottom:1px solid #ccc;outline:none;
-      resize:none;overflow:hidden;font-family:inherit;font-size:.95rem;
-      line-height:1.6;padding:6px 2px 4px;background:transparent;
-      min-height:60px;transition:border-color .2s;
-    }
+    textarea.f{width:100%;border:none;border-bottom:1px solid #ccc;outline:none;resize:none;overflow:hidden;font-family:inherit;font-size:.95rem;line-height:1.6;padding:6px 2px 4px;background:transparent;min-height:60px;transition:border-color .2s;}
     textarea.f:focus{border-bottom-color:#111;}
     .col-head{font-size:.82rem;font-weight:700;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
     .col-badge{font-size:.75rem;background:#111;color:#fff;border-radius:3px;padding:1px 6px;font-weight:600;}
     .dt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
     .dt-group{display:flex;flex-direction:column;gap:4px;}
-    input[type="date"], input[type="text"]{
-      border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;
-      font-size:.9rem;padding:4px 2px;background:transparent;color:#111;
-      transition:border-color .2s;min-width:140px;
-    }
+    input[type="date"], input[type="text"]{border:none;border-bottom:1px solid #ccc;outline:none;font-family:inherit;font-size:.9rem;padding:4px 2px;background:transparent;color:#111;transition:border-color .2s;min-width:140px;}
     input:focus{border-bottom-color:#111;}
     .now-btn{background:none;border:1px solid #888;border-radius:4px;padding:3px 8px;font-size:.78rem;cursor:pointer;color:#444;}
     .now-btn:hover{background:#111;color:#fff;border-color:#111;}
-    .doctor-row{display:flex;align-items:center;gap:10px;margin-top:16px;}
-    .doctor-row label{font-size:.85rem;font-weight:600;white-space:nowrap;}
-    .doctor-row input{flex:1;max-width:320px;}
+    .doctor-row{display:flex;align-items:center;gap:12px;margin:16px 0 8px 0;}
+    .doctor-row label{font-size:0.9rem;font-weight:600;white-space:nowrap;min-width:140px;}
+    .doctor-row input{flex:1;max-width:400px;border:none;border-bottom:1px solid #ccc;padding:5px 2px;font-size:0.95rem;}
+    .doctor-row input:focus{border-bottom-color:#111;}
     .icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
     .icd-code-wrap{position:relative;width:110px;flex-shrink:0;}
     input.ic{width:100%;border:none;border-bottom:1.5px solid #ccc;outline:none;font-family:inherit;font-size:.95rem;padding:5px 2px;background:transparent;color:#1d4ed8;font-weight:700;}
@@ -307,13 +306,13 @@
 <body>
 
 <div class="topbar">
-  <div><h1>ემერჯენსის გასინჯვის ფურცელი</h1><div class="sub">Emergency Examination Sheet</div></div>
+  <div><h1>ემერჯენსის გასინჯვის ფურცელი</h1></div>
   <div class="pbadge"><strong id="pb-name">—</strong><span id="pb-info"></span></div>
 </div>
 
 <div class="wrap">
 
-  <div class="sec open has-content" id="sec-patient">
+  <div class="sec open" id="sec-patient">
     <div class="sec-title">პაციენტის მონაცემები</div>
     <div class="sec-body">
       <table style="width:100%;border-collapse:collapse;font-size:.92rem;">
@@ -338,24 +337,25 @@
   </div>
 
   <div class="sec" id="sec-complaints">
-    <div class="sec-title" onclick="toggleSec('sec-complaints')">ჩივილები — Complaints <span class="arr">▼</span></div>
+    <div class="sec-title" onclick="toggleSec('sec-complaints')">ჩივილები <span class="arr">▼</span></div>
     <div class="sec-body">
       <textarea class="f" id="complaints" placeholder="პაციენტის ჩივილები..."></textarea>
     </div>
   </div>
 
   <div class="sec" id="sec-anamnesis">
-    <div class="sec-title" onclick="toggleSec('sec-anamnesis')">დაავადების ანამნეზი — Anamnesis morbi <span class="arr">▼</span></div>
+    <div class="sec-title" onclick="toggleSec('sec-anamnesis')">დაავადების ანამნეზი <span class="arr">▼</span></div>
     <div class="sec-body">
       <textarea class="f" id="anamnesis" placeholder="დაავადების ანამნეზი..."></textarea>
     </div>
   </div>
 
   <div class="sec" id="sec-status">
-    <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status Localis <span class="arr">▼</span></div>
+    <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status localis <span class="arr">▼</span></div>
     <div class="sec-body">
+
       <div>
-        <div class="col-head"><span class="col-badge">შემოსვლა</span> Admission</div>
+        <div class="col-head"><span class="col-badge">შემოსვლა</span></div>
         <div class="dt-row">
           <div class="dt-group">
             <label style="font-size:0.78rem;color:#555;">თარიღი</label>
@@ -367,10 +367,15 @@
           </div>
         </div>
         <textarea class="f" id="st-adm" placeholder="შემოსვლის დროს მონაცემები..."></textarea>
+
+        <div class="doctor-row">
+          <label>ექიმი:</label>
+          <input type="text" id="doctor-adm" placeholder="სახელი გვარი"/>
+        </div>
       </div>
 
-      <div style="margin-top:20px;">
-        <div class="col-head"><span class="col-badge">გადაყვანა</span> Transfer</div>
+      <div style="margin-top:28px;">
+        <div class="col-head"><span class="col-badge">გადაყვანა</span></div>
         <div class="dt-row">
           <div class="dt-group">
             <label style="font-size:0.78rem;color:#555;">თარიღი</label>
@@ -380,15 +385,16 @@
             <label style="font-size:0.78rem;color:#555;">დრო</label>
             <input type="text" id="tr-time" placeholder="მაგ: 14:30"/>
           </div>
-          <button class="now-btn" onclick="setNow('tr-time')">ახლა (დრო)</button>
+          <button class="now-btn" onclick="setNow('tr-time')">ახლა</button>
         </div>
         <textarea class="f" id="st-tr" placeholder="გადაყვანის დროს მონაცემები..."></textarea>
+
+        <div class="doctor-row">
+          <label>ექიმი:</label>
+          <input type="text" id="doctor-tr" placeholder="სახელი გვარი"/>
+        </div>
       </div>
 
-      <div class="doctor-row">
-        <label>ექიმი: სახელი და გვარი</label>
-        <input type="text" id="doctor" placeholder="ექიმის სახელი გვარი"/>
-      </div>
     </div>
   </div>
 
@@ -407,6 +413,16 @@
         <button class="add-btn" onclick="addDiag()">+ დამატება</button>
       </div>
       <div class="diag-list" id="diag-list"></div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-treating-doctor">
+    <div class="sec-title">მკურნალი ექიმი</div>
+    <div class="sec-body">
+      <div class="doctor-row" style="margin-top:4px;">
+        <label>სახელი გვარი:</label>
+        <input type="text" id="doctor-main" placeholder="მკურნალი ექიმის სახელი გვარი"/>
+      </div>
     </div>
   </div>
 
