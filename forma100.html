@@ -16,30 +16,21 @@ body{font-family:'Roboto',sans-serif;background:#fff;color:#111;font-size:14px;}
 .topbar .sub{font-size:.76rem;opacity:.7;font-style:italic;}
 .pbadge{margin-left:auto;font-size:.8rem;line-height:1.6;text-align:right;}
 .pbadge strong{font-size:.92rem;display:block;}
-.wrap{max-width:860px;margin:0 auto;padding:16px 24px 80px;}
+.wrap{max-width:860px;margin:0 auto;padding:16px 24px 120px;}
 .doc-header{text-align:center;margin-bottom:14px;line-height:1.6;}
 .doc-header .ministry{font-size:.72rem;color:#555;margin-bottom:5px;}
 .doc-header h2{font-size:1.05rem;font-weight:700;letter-spacing:.5px;margin-bottom:2px;}
 .doc-header h3{font-size:1rem;font-weight:700;letter-spacing:3px;margin-bottom:2px;}
 .doc-header .sub2{font-size:.85rem;color:#333;}
 .divider{border:none;border-top:1px solid #ddd;margin:10px 0;}
-
-/* collapsible row */
 .row{margin-bottom:4px;}
-.row-label{
-  font-size:.8rem;font-weight:700;color:#111;
-  padding:5px 0 3px;cursor:pointer;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid #e5e7eb;user-select:none;
-}
+.row-label{font-size:.8rem;font-weight:700;color:#111;padding:5px 0 3px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;user-select:none;}
 .row-label .rn{font-size:.73rem;color:#999;margin-right:4px;font-weight:400;}
 .row-label .arr{font-size:.68rem;color:#aaa;transition:transform .18s;flex-shrink:0;}
 .row-body{overflow:hidden;max-height:0;transition:max-height .22s ease;}
 .row.open .row-body{max-height:1200px;}
 .row.open .arr{transform:rotate(180deg);}
 .row.has-content .row-body{max-height:1200px;}
-
-/* fields */
 input.f,textarea.f{border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;background:transparent;padding:5px 2px 3px;color:#111;width:100%;transition:border-color .2s;}
 input.f:focus,textarea.f:focus{border-bottom-color:#111;}
 textarea.f{resize:none;overflow:hidden;line-height:1.6;min-height:0;height:auto;display:block;}
@@ -51,8 +42,6 @@ textarea.f{resize:none;overflow:hidden;line-height:1.6;min-height:0;height:auto;
 .date-row .dl{font-size:.74rem;color:#666;font-weight:600;margin-top:4px;}
 input.df{border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.84rem;background:transparent;padding:3px 2px;color:#111;transition:border-color .2s;width:100%;}
 input.df:focus{border-bottom-color:#111;}
-
-/* ICD */
 .icd-inputs{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:8px 0 2px;}
 .icd-code-wrap{position:relative;width:110px;flex-shrink:0;}
 input.ic{width:100%;border:none;border-bottom:1.5px solid #bbb;outline:none;font-family:inherit;font-size:.88rem;padding:3px 2px;background:transparent;color:#1d4ed8;font-weight:700;text-transform:uppercase;transition:border-color .2s;}
@@ -77,16 +66,18 @@ input.in:focus{border-bottom-color:#111;}
 .di .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:.9rem;padding:0 2px;}
 .di .rm:hover{color:#dc2626;}
 .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:2px 7px;margin:4px 0 2px;font-weight:600;}
-
 .dr-row{display:flex;align-items:center;gap:8px;padding:6px 0 3px;}
 .dr-row label{font-size:.8rem;font-weight:600;white-space:nowrap;}
 input.dri{flex:1;max-width:300px;border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;padding:3px 2px;background:transparent;}
 input.dri:focus{border-bottom-color:#111;}
-.sign-line{display:flex;align-items:flex-end;gap:12px;margin-top:10px;flex-wrap:wrap;}
-.sign-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px;}
+.sign-line{display:flex;align-items:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.sign-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:180px;}
 .sign-item .sl{font-size:.73rem;color:#555;}
-.sign-item .sb{border-bottom:1px solid #888;height:20px;}
-
+.sign-item .sb{border-bottom:1px solid #888;height:35px;}
+.signature-block{margin-top:30px;display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;}
+.signature-block .sign-part{text-align:center;min-width:220px;}
+.signature-block img{max-width:100%;height:auto;max-height:110px;object-fit:contain;display:block;margin:0 auto 8px;}
+.signature-block .label{font-size:0.78rem;color:#444;}
 .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-top:1px solid #e5e7eb;padding:9px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;z-index:50;}
 .btn-save{background:#111;color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn-save:hover{background:#333;}
@@ -97,7 +88,14 @@ input.dri:focus{border-bottom-color:#111;}
 .toast{position:fixed;bottom:65px;left:50%;transform:translateX(-50%) translateY(10px);background:#111;color:#fff;padding:8px 22px;border-radius:8px;font-size:.88rem;opacity:0;transition:all .3s;pointer-events:none;z-index:999;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.err{background:#dc2626;}
-@media print{.actions,.add-btn,.di .rm,.arr,.sync-badge{display:none!important;}.row-body{max-height:none!important;}body{font-size:12px;}}
+@media print{
+  .actions,.add-btn,.di .rm,.arr,.sync-badge,.icd-dd,.toast{display:none!important;}
+  .row-body{max-height:none!important;}
+  input.f,textarea.f,input.df,input.dri,input.ic,input.in{border:none!important;border-bottom:1px solid #000!important;}
+  body{font-size:12px;}
+  input::placeholder,textarea::placeholder{color:transparent!important;}
+  .signature-block img{max-height:90px;}
+}
 </style>
 </head>
 <body>
@@ -115,18 +113,16 @@ input.dri:focus{border-bottom-color:#111;}
   </div>
   <hr class="divider"/>
 
-  <!-- 1 -->
   <div class="row open has-content" id="r1">
     <div class="row-label" onclick="tog('r1')"><span><span class="rn">1.</span>ცნობის გამცემი დაწესებულება:</span><span class="arr">▼</span></div>
     <div class="row-body"><input class="f" id="f1" type="text" value="თბილისის სახელმწიფო სამედიცინო უნივერსიტეტისა და ინგოროყვას მაღალი სამედიცინო ტექნოლოგიების საუნივერსიტეტო კლინიკა"/></div>
   </div>
-  <!-- 2 -->
+
   <div class="row" id="r2">
     <div class="row-label" onclick="tog('r2')"><span><span class="rn">2.</span>ცნობა იგზავნება:</span><span class="arr">▼</span></div>
     <div class="row-body"><input class="f" id="f2" type="text" placeholder="დაწესებულების დასახელება, მისამართი..."/></div>
   </div>
 
-  <!-- 3-6 patient data — always open (auto-filled) -->
   <div class="row open has-content" id="r36">
     <div class="row-label" onclick="tog('r36')"><span>პაციენტის მონაცემები (3–6)</span><span class="arr">▼</span></div>
     <div class="row-body">
@@ -143,7 +139,7 @@ input.dri:focus{border-bottom-color:#111;}
       <div class="two" style="margin-top:6px;">
         <div>
           <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">4.</span>დაბადების თარიღი: <span id="f4-age" style="color:#1d4ed8;font-weight:700;"></span></div>
-          <input class="f" id="f4" type="text" placeholder="YYYY-MM-DD"/>
+          <input class="f" id="f4" type="text" placeholder="დდ/თთ/წწწწ"/>
         </div>
         <div>
           <div style="font-size:.74rem;font-weight:600;color:#555;margin-bottom:2px;"><span class="rn">6.</span>მისამართი:</div>
@@ -153,13 +149,11 @@ input.dri:focus{border-bottom-color:#111;}
     </div>
   </div>
 
-  <!-- 7 -->
   <div class="row" id="r7">
     <div class="row-label" onclick="tog('r7')"><span><span class="rn">7.</span>სამუშაო ადგილი / სასწავლო დაწესებულება:</span><span class="arr">▼</span></div>
-    <div class="row-body"><input class="f" id="f7" type="text" placeholder="..."/></div>
+    <div class="row-body"><input class="f" id="f7" type="text" placeholder="დასახელება..."/></div>
   </div>
 
-  <!-- 8 dates -->
   <div class="row open has-content" id="r8">
     <div class="row-label" onclick="tog('r8')"><span><span class="rn">8.</span>თარიღები:</span><span class="arr">▼</span></div>
     <div class="row-body">
@@ -171,14 +165,11 @@ input.dri:focus{border-bottom-color:#111;}
       </div>
     </div>
   </div>
-
   <hr class="divider"/>
 
-  <!-- 9 diagnosis -->
   <div class="row open has-content" id="r9">
     <div class="row-label" onclick="tog('r9')"><span><span class="rn">9.</span>სრული დიაგნოზი:</span><span class="arr">▼</span></div>
     <div class="row-body">
-      <!-- main diagnoses synced from emergency -->
       <div style="margin-top:6px;">
         <div style="font-size:.76rem;font-weight:700;color:#333;margin-bottom:2px;">ძირითადი დაავადება(ები):</div>
         <span class="sync-badge" id="sync-badge">⟳ სინქრონიზდება გასინჯვის ფურცელთან</span>
@@ -189,7 +180,6 @@ input.dri:focus{border-bottom-color:#111;}
           <button class="add-btn" onclick="addDiag('main')">+ დამატება</button>
         </div>
       </div>
-      <!-- secondary -->
       <div style="margin-top:10px;">
         <div style="font-size:.76rem;font-weight:700;color:#333;margin-bottom:4px;">თანმხლები დაავადება(ები):</div>
         <div class="diag-list" id="diag-sec-list"></div>
@@ -201,11 +191,9 @@ input.dri:focus{border-bottom-color:#111;}
       </div>
     </div>
   </div>
-
   <hr class="divider"/>
 
-  <!-- text fields 10-17 -->
-  <div class="row" id="r10"><div class="row-label" onclick="tog('r10')"><span><span class="rn">10.</span>გადატანილი დაავადებები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f10" placeholder="..."></textarea></div></div>
+  <div class="row" id="r10"><div class="row-label" onclick="tog('r10')"><span><span class="rn">10.</span>გადატანილი დაავადებები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f10" placeholder="ჩამოთვალეთ..."></textarea></div></div>
   <div class="row" id="r11"><div class="row-label" onclick="tog('r11')"><span><span class="rn">11.</span>მოკლე ანამნეზი:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f11" placeholder="..."></textarea></div></div>
   <div class="row" id="r12"><div class="row-label" onclick="tog('r12')"><span><span class="rn">12.</span>ჩატარებული დიაგნოსტიკური გამოკვლევები და კონსულტაციები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f12" placeholder="..."></textarea></div></div>
   <div class="row" id="r13"><div class="row-label" onclick="tog('r13')"><span><span class="rn">13.</span>ავადმყოფობის მიმდინარეობა:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f13" placeholder="..."></textarea></div></div>
@@ -213,10 +201,8 @@ input.dri:focus{border-bottom-color:#111;}
   <div class="row" id="r15"><div class="row-label" onclick="tog('r15')"><span><span class="rn">15.</span>მდგომარეობა სტაციონარში გაგზავნისას:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f15" placeholder="..."></textarea></div></div>
   <div class="row" id="r16"><div class="row-label" onclick="tog('r16')"><span><span class="rn">16.</span>მდგომარეობა სტაციონარიდან გაწერისას:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f16" placeholder="..."></textarea></div></div>
   <div class="row" id="r17"><div class="row-label" onclick="tog('r17')"><span><span class="rn">17.</span>სამკურნალო და შრომითი რეკომენდაციები:</span><span class="arr">▼</span></div><div class="row-body"><textarea class="f auto" id="f17" placeholder="..."></textarea></div></div>
-
   <hr class="divider"/>
 
-  <!-- 18 doctor -->
   <div class="row open has-content" id="r18">
     <div class="row-label" onclick="tog('r18')"><span><span class="rn">18.</span>მკურნალი ექიმი:</span><span class="arr">▼</span></div>
     <div class="row-body">
@@ -224,14 +210,19 @@ input.dri:focus{border-bottom-color:#111;}
     </div>
   </div>
 
-  <!-- 19 signature -->
-  <div class="sign-line">
-    <div class="sign-item"><div class="sl">19. დაწესებულების ხელმძღვანელი / მოადგილე:</div><div class="sb"></div></div>
-    <div class="sign-item"><div class="sl">ბეჭედი:</div><div class="sb"></div></div>
+  <!-- ხელმოწერები + შტამპი + ხელმოწერა -->
+  <div class="signature-block">
+    <div class="sign-part">
+      <img src="kaxa.png" alt="ხელმძღვანელის ხელმოწერა">
+      <div class="label">დაწესებულების ხელმძღვანელი / მოადგილე</div>
+    </div>
+    <div class="sign-part">
+      <img src="stamp.png" alt="დაწესებულების შტამპი">
+      <div class="label">ბეჭედი</div>
+    </div>
   </div>
 
-  <!-- 20 date -->
-  <div class="row open has-content" id="r20" style="margin-top:12px;">
+  <div class="row open has-content" id="r20" style="margin-top:30px;">
     <div class="row-label" onclick="tog('r20')"><span><span class="rn">20.</span>ცნობის გაცემის თარიღი:</span><span class="arr">▼</span></div>
     <div class="row-body"><input class="f" id="f20" type="text"/></div>
   </div>
@@ -242,186 +233,340 @@ input.dri:focus{border-bottom-color:#111;}
   <button class="btn-print" onclick="window.print()">🖨 ბეჭდვა</button>
   <button class="btn-save" onclick="saveData()">შენახვა</button>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const firebaseConfig={apiKey:"AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",authDomain:"clinic-inpatient.firebaseapp.com",projectId:"clinic-inpatient",storageBucket:"clinic-inpatient.firebasestorage.app",messagingSenderId:"586729386322",appId:"1:586729386322:web:17a92324784c2c988a4a8b"};
+const firebaseConfig = {
+  apiKey: "AIzaSyCDze1tz15HdKZVSPOPW_-7t-9ag4AiZYs",
+  authDomain: "clinic-inpatient.firebaseapp.com",
+  projectId: "clinic-inpatient",
+  storageBucket: "clinic-inpatient.firebasestorage.app",
+  messagingSenderId: "586729386322",
+  appId: "1:586729386322:web:17a92324784c2c988a4a8b"
+};
 firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-const Prm=new URLSearchParams(location.search);
+const Prm = new URLSearchParams(location.search);
 function dec(k){return decodeURIComponent(Prm.get(k)||'');}
-const PID=Prm.get('pid')||'',ROOM=Prm.get('room')||'';
-const PNAME=dec('name'),BED=dec('bed'),HIST=dec('history');
-const PERSONAL_ID=dec('personal_id'),DOB=dec('dob'),ADDRESS=dec('address');
-const ADMIT_DT=dec('admit_dt'),DOCTOR_URL=dec('doctor');
 
-function calcAge(d){if(!d)return'';const b=new Date(d);if(isNaN(b))return'';let a=new Date().getFullYear()-b.getFullYear();const m=new Date().getMonth()-b.getMonth();if(m<0||(m===0&&new Date().getDate()<b.getDate()))a--;return a>=0?a+' წ.':'';}
-function formatDt(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleString('ka-GE',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});}
+const PID         = Prm.get('pid')    || '';
+const ROOM        = Prm.get('room')   || '';
+const PNAME       = dec('name');
+const BED         = dec('bed');
+const HIST        = dec('history');
+const PERSONAL_ID = dec('personal_id');
+const DOB         = dec('dob');
+const ADDRESS     = dec('address');
+const ADMIT_DT    = dec('admit_dt');
+const DOCTOR_URL  = dec('doctor');
+
+function formatDtGE(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatCurrentDateGE() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const yyyy = now.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function calcAge(d){
+  if(!d) return '';
+  const b = new Date(d);
+  if(isNaN(b)) return '';
+  let a = new Date().getFullYear() - b.getFullYear();
+  const m = new Date().getMonth() - b.getMonth();
+  if(m<0 || (m===0 && new Date().getDate()<b.getDate())) a--;
+  return a>=0 ? a+' წ.' : '';
+}
+
 function esc(t){if(!t)return'';const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3000);}
 function v(id){const el=document.getElementById(id);return el?el.value:'';}
 
-// auto-fill patient fields
-document.getElementById('pb-name').textContent=PNAME||'პაციენტი';
-const inf=[];if(BED)inf.push('საწ. '+BED);if(HIST)inf.push('ისტ. '+HIST);if(ROOM)inf.push(ROOM);
-document.getElementById('pb-info').textContent=inf.join(' · ');
-document.getElementById('f3').value=PNAME;
-document.getElementById('f4').value=DOB;
-if(DOB){const a=calcAge(DOB);if(a)document.getElementById('f4-age').textContent='('+a+')';}
-document.getElementById('f5').value=PERSONAL_ID;
-document.getElementById('f6').value=ADDRESS;
-document.getElementById('f8c').value=ADMIT_DT?formatDt(ADMIT_DT):'';
-document.getElementById('doctor').value=DOCTOR_URL;
-document.getElementById('f20').value=new Date().toLocaleDateString('ka-GE',{day:'numeric',month:'long',year:'numeric'});
+// auto-fill
+document.getElementById('pb-name').textContent = PNAME || 'პაციენტი';
+const inf = [];
+if(BED) inf.push('საწ. '+BED);
+if(HIST) inf.push('ისტ. '+HIST);
+if(ROOM) inf.push(ROOM);
+document.getElementById('pb-info').textContent = inf.join(' · ');
 
-// ── section toggle ────────────────────────────────────────────────────────────
-window.tog=function(id){
-  const r=document.getElementById(id);
-  if(r.classList.contains('has-content'))return;
+document.getElementById('f3').value = PNAME;
+document.getElementById('f4').value = DOB;
+if(DOB){const a=calcAge(DOB); if(a) document.getElementById('f4-age').textContent='('+a+')';}
+document.getElementById('f5').value = PERSONAL_ID;
+document.getElementById('f6').value = ADDRESS;
+document.getElementById('f8c').value = ADMIT_DT ? formatDtGE(ADMIT_DT) : '';
+document.getElementById('doctor').value = DOCTOR_URL;
+document.getElementById('f20').value = formatCurrentDateGE();
+
+// toggle
+window.tog = function(id){
+  const r = document.getElementById(id);
+  if(r.classList.contains('has-content')) return;
   r.classList.toggle('open');
 };
+
 function autoResize(el){el.style.height='0';el.style.height=el.scrollHeight+'px';}
 document.querySelectorAll('textarea.auto').forEach(ta=>ta.addEventListener('input',()=>autoResize(ta)));
 
-// watch text fields for content → open & has-content
-const textFieldRows={f2:'r2',f7:'r7',f10:'r10',f11:'r11',f12:'r12',f13:'r13',f14:'r14',f15:'r15',f16:'r16',f17:'r17'};
+// auto open rows
+const textFieldRows = {f2:'r2',f7:'r7',f10:'r10',f11:'r11',f12:'r12',f13:'r13',f14:'r14',f15:'r15',f16:'r16',f17:'r17'};
 Object.entries(textFieldRows).forEach(([fid,rid])=>{
-  const el=document.getElementById(fid);
-  if(!el)return;
+  const el = document.getElementById(fid);
+  if(!el) return;
   el.addEventListener('input',()=>{
-    if(el.value.trim())document.getElementById(rid).classList.add('open','has-content');
+    if(el.value.trim()) document.getElementById(rid).classList.add('open','has-content');
     else document.getElementById(rid).classList.remove('has-content');
-    if(el.classList.contains('auto'))autoResize(el);
+    if(el.classList.contains('auto')) autoResize(el);
   });
   el.addEventListener('blur',saveData);
 });
+
 ['f1','f4','f5','f6','f3','f8a','f8b','f8c','f8d','f20','doctor'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el){el.addEventListener('blur',saveData);}
-});
-document.getElementById('f4').addEventListener('input',()=>{
-  const a=calcAge(document.getElementById('f4').value);
-  document.getElementById('f4-age').textContent=a?'('+a+')':'';
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('blur',saveData);
 });
 
-// ── ICD10 ─────────────────────────────────────────────────────────────────────
-let ddAct={id:null,idx:-1};
+document.getElementById('f4').addEventListener('input',()=>{
+  const a = calcAge(document.getElementById('f4').value);
+  document.getElementById('f4-age').textContent = a ? '('+a+')' : '';
+});
+
+// ICD10 ნაწილი (შეუცვლელი)
+let ddAct = {id:null,idx:-1};
+
 function searchIcd(q,max=25){
-  if(!q)return[];const up=q.toUpperCase().trim();const res=[];
-  for(const[code,name]of Object.entries(ICD10_KA)){if(res.length>=max)break;if(code.startsWith(up)||name.toLowerCase().includes(q.toLowerCase()))res.push({code,name});}
+  if(!q) return [];
+  const up = q.toUpperCase().trim();
+  const res = [];
+  for(const[code,name] of Object.entries(ICD10_KA)){
+    if(res.length >= max) break;
+    if(code.startsWith(up) || name.toLowerCase().includes(q.toLowerCase())) res.push({code,name});
+  }
   return res;
 }
+
 function renderDd(ddId,items,codeId,nameId){
-  const dd=document.getElementById(ddId);ddAct={id:ddId,idx:-1};
-  if(!items.length){dd.innerHTML=`<div class="no-res">ვერ მოიძებნა</div>`;dd.classList.add('open');dd._items=[];return;}
-  dd.innerHTML=items.map((it,i)=>`<div class="icd-opt" data-i="${i}" onmousedown="event.preventDefault()" onclick="pickOpt('${ddId}','${codeId}','${nameId}',${i})"><span class="oc">${esc(it.code)}</span><span class="on">${esc(it.name.length>65?it.name.slice(0,65)+'…':it.name)}</span></div>`).join('');
-  dd.classList.add('open');dd._items=items;
+  const dd = document.getElementById(ddId);
+  ddAct = {id:ddId, idx:-1};
+  if(!items.length){
+    dd.innerHTML = `<div class="no-res">ვერ მოიძებნა</div>`;
+    dd.classList.add('open');
+    dd._items = [];
+    return;
+  }
+  dd.innerHTML = items.map((it,i)=>`<div class="icd-opt" data-i="${i}" onmousedown="event.preventDefault()" onclick="pickOpt('${ddId}','${codeId}','${nameId}',${i})"><span class="oc">${esc(it.code)}</span><span class="on">${esc(it.name.length>65?it.name.slice(0,65)+'…':it.name)}</span></div>`).join('');
+  dd.classList.add('open');
+  dd._items = items;
 }
-window.pickOpt=function(ddId,codeId,nameId,i){const dd=document.getElementById(ddId);const it=dd._items&&dd._items[i];if(!it)return;document.getElementById(codeId).value=it.code;document.getElementById(nameId).value=it.name;closeAllDd();};
-function closeAllDd(){document.querySelectorAll('.icd-dd').forEach(d=>d.classList.remove('open'));ddAct={id:null,idx:-1};}
-document.addEventListener('click',e=>{if(!e.target.closest('.icd-code-wrap')&&!e.target.closest('.icd-name-wrap'))closeAllDd();});
+
+window.pickOpt = function(ddId,codeId,nameId,i){
+  const dd = document.getElementById(ddId);
+  const it = dd._items && dd._items[i];
+  if(!it) return;
+  document.getElementById(codeId).value = it.code;
+  document.getElementById(nameId).value = it.name;
+  closeAllDd();
+};
+
+function closeAllDd(){
+  document.querySelectorAll('.icd-dd').forEach(d=>d.classList.remove('open'));
+  ddAct = {id:null, idx:-1};
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.icd-code-wrap') && !e.target.closest('.icd-name-wrap')) closeAllDd();
+});
+
 function hdk(e,ddId,codeId,nameId){
-  const dd=document.getElementById(ddId);
-  if(!dd.classList.contains('open')||!dd._items||!dd._items.length)return;
-  const opts=dd.querySelectorAll('.icd-opt');
-  if(e.key==='ArrowDown'){e.preventDefault();ddAct.idx=Math.min(ddAct.idx+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});}
-  else if(e.key==='ArrowUp'){e.preventDefault();ddAct.idx=Math.max(ddAct.idx-1,0);opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));opts[ddAct.idx]?.scrollIntoView({block:'nearest'});}
-  else if(e.key==='Enter'&&ddAct.idx>=0){e.preventDefault();pickOpt(ddId,codeId,nameId,ddAct.idx);}
-  else if(e.key==='Escape'){closeAllDd();}
+  const dd = document.getElementById(ddId);
+  if(!dd.classList.contains('open') || !dd._items || !dd._items.length) return;
+  const opts = dd.querySelectorAll('.icd-opt');
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    ddAct.idx = Math.min(ddAct.idx+1, opts.length-1);
+    opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));
+    opts[ddAct.idx]?.scrollIntoView({block:'nearest'});
+  }
+  else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    ddAct.idx = Math.max(ddAct.idx-1, 0);
+    opts.forEach((o,i)=>o.classList.toggle('sel',i===ddAct.idx));
+    opts[ddAct.idx]?.scrollIntoView({block:'nearest'});
+  }
+  else if(e.key==='Enter' && ddAct.idx>=0){
+    e.preventDefault();
+    pickOpt(ddId,codeId,nameId,ddAct.idx);
+  }
+  else if(e.key==='Escape'){
+    closeAllDd();
+  }
 }
-window.onCI=function(codeId,nameId,ddId){
-  const val=document.getElementById(codeId).value.trim(),dd=document.getElementById(ddId);
-  if(!val){dd.classList.remove('open');return;}
-  const up=val.toUpperCase();
-  if(ICD10_KA[up]){document.getElementById(nameId).value=ICD10_KA[up];dd.classList.remove('open');return;}
-  renderDd(ddId,searchIcd(val,20),codeId,nameId);
-};
-window.onCK=function(e,codeId,nameId,ddId,group){
-  hdk(e,ddId,codeId,nameId);
-  if(e.key==='Tab'){e.preventDefault();const up=document.getElementById(codeId).value.trim().toUpperCase();if(ICD10_KA[up])document.getElementById(nameId).value=ICD10_KA[up];document.getElementById(nameId).focus();}
-  if(e.key==='Enter'&&ddAct.idx<0){e.preventDefault();addDiag(group);}
-};
-window.onNI=function(nameId,ddId,group){
-  const val=document.getElementById(nameId).value.trim(),dd=document.getElementById(ddId);
-  if(val.length<2){dd.classList.remove('open');return;}
-  const codeId=group==='main'?'mc':'sc';
-  renderDd(ddId,searchIcd(val,25),codeId,nameId);
-};
-window.onNK=function(e,nameId,ddId,group){
-  const codeId=group==='main'?'mc':'sc';
-  hdk(e,ddId,codeId,nameId);
-  if(e.key==='Enter'&&ddAct.idx<0){e.preventDefault();addDiag(group);}
+
+window.onCI = function(codeId,nameId,ddId){
+  const val = document.getElementById(codeId).value.trim();
+  const dd = document.getElementById(ddId);
+  if(!val){ dd.classList.remove('open'); return; }
+  const up = val.toUpperCase();
+  if(ICD10_KA[up]){
+    document.getElementById(nameId).value = ICD10_KA[up];
+    dd.classList.remove('open');
+    return;
+  }
+  renderDd(ddId, searchIcd(val,20), codeId, nameId);
 };
 
-let diagMain=[],diagSec=[];
+window.onCK = function(e,codeId,nameId,ddId,group){
+  hdk(e,ddId,codeId,nameId);
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const up = document.getElementById(codeId).value.trim().toUpperCase();
+    if(ICD10_KA[up]) document.getElementById(nameId).value = ICD10_KA[up];
+    document.getElementById(nameId).focus();
+  }
+  if(e.key==='Enter' && ddAct.idx<0){
+    e.preventDefault();
+    addDiag(group);
+  }
+};
+
+window.onNI = function(nameId,ddId,group){
+  const val = document.getElementById(nameId).value.trim();
+  const dd = document.getElementById(ddId);
+  if(val.length<2){ dd.classList.remove('open'); return; }
+  const codeId = group==='main'?'mc':'sc';
+  renderDd(ddId, searchIcd(val,25), codeId, nameId);
+};
+
+window.onNK = function(e,nameId,ddId,group){
+  const codeId = group==='main'?'mc':'sc';
+  hdk(e,ddId,codeId,nameId);
+  if(e.key==='Enter' && ddAct.idx<0){
+    e.preventDefault();
+    addDiag(group);
+  }
+};
+
+let diagMain = [], diagSec = [];
+
 function renderList(arr,listId,rmFn){
-  document.getElementById(listId).innerHTML=arr.map((d,i)=>`<div class="di">${d.code?`<span class="code">${esc(d.code)}</span>`:''}<span class="name">${esc(d.name)}</span><button class="rm" onclick="${rmFn}(${i})">×</button></div>`).join('');
+  document.getElementById(listId).innerHTML = arr.map((d,i)=>
+    `<div class="di">${d.code?`<span class="code">${esc(d.code)}</span>`:''}<span class="name">${esc(d.name)}</span><button class="rm" onclick="${rmFn}(${i})">×</button></div>`
+  ).join('');
 }
-window.addDiag=function(group){
-  const codeId=group==='main'?'mc':'sc',nameId=group==='main'?'mn':'sn';
-  const code=document.getElementById(codeId).value.trim().toUpperCase();
-  const name=document.getElementById(nameId).value.trim()||(code&&ICD10_KA[code]?ICD10_KA[code]:'');
-  if(!code&&!name)return;
-  if(group==='main'){diagMain.push({code,name});renderList(diagMain,'diag-main-list','rmMain');}
-  else{diagSec.push({code,name});renderList(diagSec,'diag-sec-list','rmSec');}
-  document.getElementById(codeId).value='';document.getElementById(nameId).value='';
-  closeAllDd();document.getElementById(codeId).focus();saveData();
-};
-window.rmMain=i=>{diagMain.splice(i,1);renderList(diagMain,'diag-main-list','rmMain');saveData();};
-window.rmSec=i=>{diagSec.splice(i,1);renderList(diagSec,'diag-sec-list','rmSec');saveData();};
 
-// ── Firebase ──────────────────────────────────────────────────────────────────
-const EMERG_DOC=PID&&ROOM?`${ROOM}_${PID}`:null;
-const F100_DOC=PID&&ROOM?`${ROOM}_${PID}_f100`:null;
-let f100Loaded=false;
+window.addDiag = function(group){
+  const codeId = group==='main'?'mc':'sc';
+  const nameId = group==='main'?'mn':'sn';
+  const code = document.getElementById(codeId).value.trim().toUpperCase();
+  const name = document.getElementById(nameId).value.trim() || (code && ICD10_KA[code] ? ICD10_KA[code] : '');
+  if(!code && !name) return;
+  if(group==='main'){
+    diagMain.push({code,name});
+    renderList(diagMain,'diag-main-list','rmMain');
+  } else {
+    diagSec.push({code,name});
+    renderList(diagSec,'diag-sec-list','rmSec');
+  }
+  document.getElementById(codeId).value = '';
+  document.getElementById(nameId).value = '';
+  closeAllDd();
+  document.getElementById(codeId).focus();
+  saveData();
+};
+
+window.rmMain = i=>{ diagMain.splice(i,1); renderList(diagMain,'diag-main-list','rmMain'); saveData(); };
+window.rmSec  = i=>{ diagSec.splice(i,1);  renderList(diagSec, 'diag-sec-list', 'rmSec');  saveData(); };
+
+// Firebase
+const EMERG_DOC = PID && ROOM ? `${ROOM}_${PID}` : null;
+const F100_DOC  = PID && ROOM ? `${ROOM}_${PID}_f100` : null;
+let f100Loaded = false;
 
 if(EMERG_DOC){
   db.collection('emergency_sheets').doc(EMERG_DOC).onSnapshot(snap=>{
-    if(!snap.exists)return;
-    const d=snap.data();
-    if(Array.isArray(d.diagnoses)&&d.diagnoses.length){
-      diagMain=d.diagnoses;renderList(diagMain,'diag-main-list','rmMain');
-      const badge=document.getElementById('sync-badge');badge.textContent='✓ გასინჯვის ფურცლიდან სინქრონიზებულია';
+    if(!snap.exists) return;
+    const d = snap.data();
+    if(Array.isArray(d.diagnoses) && d.diagnoses.length){
+      diagMain = d.diagnoses;
+      renderList(diagMain,'diag-main-list','rmMain');
+      document.getElementById('sync-badge').textContent = '✓ გასინჯვის ფურცლიდან სინქრონიზებულია';
     }
   });
 }
+
 if(F100_DOC){
   db.collection('forma100_sheets').doc(F100_DOC).onSnapshot(snap=>{
-    if(!snap.exists||f100Loaded)return;
-    f100Loaded=true;
-    const d=snap.data();
-    const loadField=(id,rid)=>{
-      if(!d[id])return;
-      const el=document.getElementById(id);el.value=d[id];
-      if(rid){const r=document.getElementById(rid);r.classList.add('open','has-content');}
-      if(el.classList.contains('auto'))autoResize(el);
+    if(!snap.exists || f100Loaded) return;
+    f100Loaded = true;
+    const d = snap.data();
+    const loadField = (id,rid) => {
+      if(!d[id]) return;
+      const el = document.getElementById(id);
+      el.value = d[id];
+      if(rid){
+        const r = document.getElementById(rid);
+        r.classList.add('open','has-content');
+      }
+      if(el.classList.contains('auto')) autoResize(el);
     };
-    loadField('f1','r1');loadField('f2','r2');
-    loadField('f3',null);loadField('f4',null);loadField('f5',null);loadField('f6',null);
-    if(d.f4){const a=calcAge(d.f4);if(a)document.getElementById('f4-age').textContent='('+a+')';}
-    loadField('f7','r7');loadField('f8a',null);loadField('f8b',null);loadField('f8c',null);loadField('f8d',null);
-    loadField('f10','r10');loadField('f11','r11');loadField('f12','r12');loadField('f13','r13');
-    loadField('f14','r14');loadField('f15','r15');loadField('f16','r16');loadField('f17','r17');
-    loadField('f20','r20');loadField('doctor','r18');
-    if(Array.isArray(d.diagSec)){diagSec=d.diagSec;renderList(diagSec,'diag-sec-list','rmSec');}
+    loadField('f1','r1'); loadField('f2','r2');
+    loadField('f3',null); loadField('f4',null); loadField('f5',null); loadField('f6',null);
+    if(d.f4){ const a=calcAge(d.f4); if(a) document.getElementById('f4-age').textContent='('+a+')'; }
+    loadField('f7','r7');
+    loadField('f8a',null); loadField('f8b',null); loadField('f8c',null); loadField('f8d',null);
+    loadField('f10','r10'); loadField('f11','r11'); loadField('f12','r12'); loadField('f13','r13');
+    loadField('f14','r14'); loadField('f15','r15'); loadField('f16','r16'); loadField('f17','r17');
+    loadField('f20','r20'); loadField('doctor','r18');
+    if(Array.isArray(d.diagSec)){
+      diagSec = d.diagSec;
+      renderList(diagSec,'diag-sec-list','rmSec');
+    }
   });
 }
 
 async function saveData(){
-  const data={pid:PID,room:ROOM,patientName:PNAME,bed:BED,history:HIST,
-    f1:v('f1'),f2:v('f2'),f3:v('f3'),f4:v('f4'),f5:v('f5'),f6:v('f6'),
-    f7:v('f7'),f8a:v('f8a'),f8b:v('f8b'),f8c:v('f8c'),f8d:v('f8d'),
-    f10:v('f10'),f11:v('f11'),f12:v('f12'),f13:v('f13'),f14:v('f14'),
-    f15:v('f15'),f16:v('f16'),f17:v('f17'),f20:v('f20'),doctor:v('doctor'),
-    diagMain:diagMain,diagSec:diagSec,
-    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  const data = {
+    pid: PID,
+    room: ROOM,
+    patientName: PNAME,
+    bed: BED,
+    history: HIST,
+    f1:v('f1'), f2:v('f2'), f3:v('f3'), f4:v('f4'), f5:v('f5'), f6:v('f6'),
+    f7:v('f7'),
+    f8a:v('f8a'), f8b:v('f8b'), f8c:v('f8c'), f8d:v('f8d'),
+    f10:v('f10'), f11:v('f11'), f12:v('f12'), f13:v('f13'), f14:v('f14'),
+    f15:v('f15'), f16:v('f16'), f17:v('f17'),
+    f20:v('f20'),
+    doctor:v('doctor'),
+    diagMain: diagMain,
+    diagSec: diagSec,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try{
-    if(F100_DOC)await db.collection('forma100_sheets').doc(F100_DOC).set(data,{merge:true});
-    else localStorage.setItem('f100_draft',JSON.stringify(data));
-    const ok=document.getElementById('save-ok');ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),2500);
-  }catch(err){showToast('შეცდომა: '+err.message,true);}
+    if(F100_DOC){
+      await db.collection('forma100_sheets').doc(F100_DOC).set(data,{merge:true});
+    } else {
+      localStorage.setItem('f100_draft', JSON.stringify(data));
+    }
+    const ok = document.getElementById('save-ok');
+    ok.classList.add('show');
+    setTimeout(()=>ok.classList.remove('show'), 2500);
+  } catch(err){
+    showToast('შეცდომა შენახვისას', true);
+  }
 }
 </script>
 </body>
