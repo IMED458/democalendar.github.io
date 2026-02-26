@@ -109,11 +109,29 @@ input.dri:focus{border-bottom-color:#111;}
 .toast.err{background:#dc2626;}
 @media print{
   .actions,.add-btn,.di .rm,.arr,.sync-badge,.icd-dd,.toast{display:none!important;}
-  .row-body{max-height:none!important;}
-  input.f,textarea.f,input.df,input.dri,input.ic,input.in{border:none!important;border-bottom:1px solid #000!important;color:#000!important;}
+  .row-body{max-height:none!important;overflow:visible!important;}
+  .row{page-break-inside:avoid;}
+  input.f,input.df,input.dri,input.ic,input.in{
+    border:none!important;border-bottom:1px solid #000!important;
+    color:#000!important;background:transparent!important;
+  }
+  textarea.f{
+    border:none!important;border-bottom:1px solid #000!important;
+    color:#000!important;background:transparent!important;
+    /* textarea-ს print-ში სიმაღლე კონტენტზე მორგებული */
+    overflow:visible!important;
+    height:auto!important;
+    min-height:0!important;
+    resize:none!important;
+    /* ბეჭდვისას white-space შეინარჩუნოს გადაფარვა */
+    white-space:pre-wrap!important;
+    word-break:break-word!important;
+  }
   body{font-size:12px;}
   input::placeholder,textarea::placeholder{color:transparent!important;}
   .signature-block img{max-height:90px;}
+  /* სინქრ. badge-ები ბეჭდვისას დამალე */
+  .sync-badge{display:none!important;}
 }
 </style>
 </head>
@@ -336,11 +354,17 @@ if(ROOM) inf.push(ROOM);
 document.getElementById('pb-info').textContent = inf.join(' · ');
 
 document.getElementById('f3').value = PNAME;
-document.getElementById('f4').value = DOB;
+// DOB: convert YYYY-MM-DD → DD/MM/YYYY
+const dobFormatted = DOB ? (()=>{
+  const parts = DOB.split('-');
+  if(parts.length===3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return DOB;
+})() : '';
+document.getElementById('f4').value = dobFormatted;
 if(DOB){const a=calcAge(DOB); if(a) document.getElementById('f4-age').textContent='('+a+')';}
 document.getElementById('f5').value = PERSONAL_ID;
 document.getElementById('f6').value = ADDRESS;
-document.getElementById('f8c').value = ADMIT_DT ? formatDtGE(ADMIT_DT) : '';
+// f8c და f8d ემერჯენსის Firebase-დან ივსება (იხ. onSnapshot)
 document.getElementById('doctor').value = DOCTOR_URL;
 document.getElementById('f20').value = formatCurrentDateGE();
 
@@ -543,7 +567,23 @@ if(EMERG_DOC){
       document.getElementById('sync-badge').textContent = '✓ გასინჯვის ფურცლიდან სინქრონიზებულია';
     }
 
-    // 2) მოკლე ანამნეზი → f11 (მხოლოდ თუ f100 draft-ი ჯერ არ ჩაიტვირთა)
+    // 2) სტაციონარში მოთავსება (f8c) ← შემოსვლის თარიღი + დრო
+    if(d.dtAdmDate){
+      const dd2 = d.dtAdmDate.split('-');
+      const admDateGE = dd2.length===3 ? `${dd2[2]}/${dd2[1]}/${dd2[0]}` : d.dtAdmDate;
+      const admTime = d.dtAdmTime ? ` ${d.dtAdmTime}` : '';
+      document.getElementById('f8c').value = admDateGE + admTime;
+    }
+
+    // 3) გაწერა (f8d) ← გადაყვანის თარიღი + დრო
+    if(d.dtTrDate){
+      const td = d.dtTrDate.split('-');
+      const trDateGE = td.length===3 ? `${td[2]}/${td[1]}/${td[0]}` : d.dtTrDate;
+      const trTime = d.dtTrTime ? ` ${d.dtTrTime}` : '';
+      document.getElementById('f8d').value = trDateGE + trTime;
+    }
+
+    // 4) მოკლე ანამნეზი → f11 (მხოლოდ თუ f100 draft-ი ჯერ არ ჩაიტვირთა)
     if(d.anamnesis){
       const el = document.getElementById('f11');
       if(!f100Loaded || !el.value.trim()){
@@ -555,8 +595,7 @@ if(EMERG_DOC){
       }
     }
 
-    // 3) ავადმყოფობის მიმდინარეობა → f13
-    //    გაერთიანება: stAdm (შემოსვლა) + stTr (გადაყვანა) — მხოლოდ ტექსტი, თარიღ/ექიმის გარეშე
+    // 5) ავადმყოფობის მიმდინარეობა → f13
     const parts = [];
     if(d.stAdm && d.stAdm.trim()) parts.push(d.stAdm.trim());
     if(d.stTr  && d.stTr.trim())  parts.push(d.stTr.trim());
