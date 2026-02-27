@@ -80,6 +80,12 @@
     .doctor-row input,.doctor-row select{flex:1;max-width:420px;border:none;border-bottom:1px solid #ccc;padding:6px 3px;font-size:0.96rem;background:transparent;font-family:inherit;color:#111;outline:none;}
     .doctor-row input:focus,.doctor-row select:focus{border-bottom-color:#111;}
     .doctor-sign{width:130px;max-width:35vw;height:auto;max-height:46px;object-fit:contain;display:none;}
+    .status-add-wrap{display:flex;justify-content:flex-end;margin-top:12px;}
+    .status-add-btn{background:#111;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.82rem;cursor:pointer;font-family:inherit;font-weight:600;}
+    .status-add-btn:hover{background:#333;}
+    .extra-status-item{margin-top:18px;padding-top:14px;border-top:1px dashed #d1d5db;}
+    .extra-remove{background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;font-size:.75rem;cursor:pointer;color:#475569;}
+    .extra-remove:hover{border-color:#94a3b8;color:#1f2937;}
 
     /* ── ICD inputs row ── */
     .icd-inputs{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
@@ -213,7 +219,7 @@
     .toast.err{background:#dc2626;}
 
     @media print {
-      .actions, .now-btn, .add-btn, .diag-item .rm,
+      .actions, .now-btn, .add-btn, .diag-item .rm, .status-add-btn, .extra-remove,
       .sec-title .arr, .icd-inputs, .icd-ac-dropdown { display:none !important; }
       body { font-size:10.5pt !important; line-height:1.52 !important; }
       .topbar { border-bottom:2px solid #111 !important; padding:6mm 10mm 5mm !important; }
@@ -294,7 +300,6 @@
     <div class="sec-title" onclick="toggleSec('sec-status')">ობიექტური გასინჯვა — Status localis <span class="arr">▼</span></div>
     <div class="sec-body">
       <div>
-        <div class="col-head"><span class="col-badge">შემოსვლა</span></div>
         <div class="dt-row">
           <div class="dt-group">
             <label style="font-size:0.78rem;color:#555;">თარიღი</label>
@@ -324,7 +329,6 @@
       </div>
 
       <div style="margin-top:32px;">
-        <div class="col-head"><span class="col-badge">გადაყვანა</span></div>
         <div class="dt-row">
           <div class="dt-group">
             <label style="font-size:0.78rem;color:#555;">თარიღი</label>
@@ -352,6 +356,10 @@
           </select>
           <img class="doctor-sign" id="doctor-tr-sign" alt="ექიმის ხელმოწერა"/>
         </div>
+      </div>
+      <div id="status-extra-list"></div>
+      <div class="status-add-wrap">
+        <button type="button" class="status-add-btn" onclick="addStatusExtra()">＋ დამატება</button>
       </div>
     </div>
   </div>
@@ -705,6 +713,97 @@
     updateDoctorSignature(selectId);
   }
 
+  const DOCTOR_NAMES = [
+    'ნინო კიკვაძე',
+    'ანა დალაქიშვილი',
+    'ეკატერინე მიქელაძე',
+    'მურადი მიგინეიშვილი',
+    'მარიამ კვერნაძე',
+    'ქეთევან ზედელაშვილი',
+    'თეკლა მაისურაძე'
+  ];
+
+  const DOCTOR_OPTIONS_HTML = `
+    <option value="">აირჩიეთ ექიმი</option>
+    ${DOCTOR_NAMES.map(n => `<option value="${n}">${n}</option>`).join('')}
+  `;
+
+  function addStatusExtraBlock(entry = {}) {
+    const wrap = document.getElementById('status-extra-list');
+    if (!wrap) return;
+    const idx = Date.now() + Math.floor(Math.random() * 1000);
+    const noteId = `status-extra-note-${idx}`;
+    const doctorId = `status-extra-doctor-${idx}`;
+    const item = document.createElement('div');
+    item.className = 'extra-status-item';
+    item.dataset.extra = '1';
+    item.innerHTML = `
+      <div class="dt-row">
+        <div class="dt-group">
+          <label style="font-size:0.78rem;color:#555;">თარიღი</label>
+          <input type="date" data-role="date"/>
+        </div>
+        <div class="dt-group">
+          <label style="font-size:0.78rem;color:#555;">დრო</label>
+          <input type="text" data-role="time" placeholder="მაგ: 14:30"/>
+        </div>
+        <button type="button" class="now-btn" data-role="now">ახლა</button>
+        <button type="button" class="extra-remove" data-role="remove">წაშლა</button>
+      </div>
+      <textarea class="f" id="${noteId}" data-role="note" placeholder="დამატებითი ჩანაწერი..."></textarea>
+      <div class="print-proxy" id="${noteId}-proxy"></div>
+      <div class="doctor-row">
+        <label>ექიმი:</label>
+        <select id="${doctorId}" data-role="doctor">${DOCTOR_OPTIONS_HTML}</select>
+        <img class="doctor-sign" id="${doctorId}-sign" alt="ექიმის ხელმოწერა"/>
+      </div>
+    `;
+    wrap.appendChild(item);
+
+    const dateEl = item.querySelector('[data-role="date"]');
+    const timeEl = item.querySelector('[data-role="time"]');
+    const noteEl = item.querySelector('[data-role="note"]');
+    const doctorEl = item.querySelector('[data-role="doctor"]');
+    const nowBtn = item.querySelector('[data-role="now"]');
+    const removeBtn = item.querySelector('[data-role="remove"]');
+
+    dateEl.value = entry.date || '';
+    timeEl.value = entry.time || '';
+    noteEl.value = entry.note || '';
+    autoResize(noteEl);
+    syncProxy(noteEl);
+    setDoctorValue(doctorId, entry.doctor || '');
+
+    noteEl.addEventListener('input', () => { autoResize(noteEl); syncProxy(noteEl); });
+    doctorEl.addEventListener('change', () => updateDoctorSignature(doctorId));
+    nowBtn.addEventListener('click', () => {
+      const now = new Date();
+      timeEl.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    });
+    removeBtn.addEventListener('click', () => item.remove());
+  }
+
+  function collectStatusExtras() {
+    return Array.from(document.querySelectorAll('#status-extra-list .extra-status-item')).map(item => ({
+      date: item.querySelector('[data-role="date"]')?.value || '',
+      time: item.querySelector('[data-role="time"]')?.value || '',
+      note: item.querySelector('[data-role="note"]')?.value?.trim() || '',
+      doctor: item.querySelector('[data-role="doctor"]')?.value?.trim() || ''
+    }));
+  }
+
+  function renderStatusExtras(list) {
+    const wrap = document.getElementById('status-extra-list');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (!Array.isArray(list)) return;
+    list.forEach(entry => addStatusExtraBlock(entry || {}));
+  }
+
+  window.addStatusExtra = function() {
+    addStatusExtraBlock();
+  };
+
   document.querySelectorAll('textarea.f').forEach(ta => {
     ta.addEventListener('input', () => { autoResize(ta); syncProxy(ta); });
     autoResize(ta);
@@ -782,6 +881,7 @@
       stTr:        document.getElementById('st-tr').value.trim(),
       doctorTr:    document.getElementById('doctor-tr').value.trim(),
       doctorMain:  document.getElementById('doctor-main').value.trim(),
+      statusExtras: collectStatusExtras(),
       diagnoses,
       updatedAt:   serverTimestamp()
     };
@@ -810,6 +910,7 @@
       document.getElementById('st-tr').value       = d.stTr       || '';
       setDoctorValue('doctor-tr', d.doctorTr || '');
       setDoctorValue('doctor-main', d.doctorMain || doctor || '');
+      renderStatusExtras(d.statusExtras || []);
       if (Array.isArray(d.diagnoses)) { diagnoses = d.diagnoses; renderDiags(); }
       document.querySelectorAll('textarea.f').forEach(ta => { autoResize(ta); syncProxy(ta); });
     });
