@@ -127,7 +127,10 @@ input.dri:focus{border-bottom-color:#111;}
 @media print{
   .actions,.add-btn,.di .rm,.arr,.sync-badge,.icd-dd,.toast{display:none!important;}
   .row-body{max-height:none!important;overflow:visible!important;}
-  .row{page-break-inside:avoid;}
+  /* Allow long sections to flow across pages instead of leaving large blank gaps */
+  .row{break-inside:auto;page-break-inside:auto;}
+  .row-label{break-after:avoid-page;page-break-after:avoid;}
+  .row-body{break-inside:auto;page-break-inside:auto;}
   input.f,input.df,input.dri,input.ic,input.in{
     border:none!important;border-bottom:1px solid #000!important;
     color:#000!important;background:transparent!important;
