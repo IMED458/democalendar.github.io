@@ -315,6 +315,38 @@
           .then(() => showToast('წაიშალა'));
     };
 
+    window.transferPatient = async id => {
+      closeActionPopup();
+      if (!currentCollection?.id) return;
+      const p = patients.find(x => x.id === id); if (!p) return;
+
+      const fromRoom = currentCollection.id;
+      const toRoom = fromRoom === 'observation_room' ? 'shock_room' : 'observation_room';
+      const toLabel = toRoom === 'shock_room' ? 'შოკის დარბაზი' : 'ობსერვაციის დარბაზი';
+      if (!confirm(`პაციენტის გადაყვანა: ${toLabel}-ში?`)) return;
+
+      try {
+        const payload = { ...p, transferred_from: fromRoom, transferred_to: toRoom, transferred_at: serverTimestamp() };
+        delete payload.id;
+        await setDoc(doc(db, toRoom, id), payload);
+        await deleteDoc(doc(db, fromRoom, id));
+
+        const oldChecklistId = `${fromRoom}_${id}`;
+        const newChecklistId = `${toRoom}_${id}`;
+        const checklistMeta = checklistMetaByPatient[id];
+        if (checklistMeta) {
+          const movedChecklist = { ...checklistMeta, room: toRoom, updatedAt: serverTimestamp() };
+          delete movedChecklist.id;
+          await setDoc(doc(db, 'patient_checklists', newChecklistId), movedChecklist, { merge: true });
+          await deleteDoc(doc(db, 'patient_checklists', oldChecklistId));
+        }
+
+        showToast(`პაციენტი გადაიყვანეს: ${toLabel}-ში`);
+      } catch (err) {
+        showToast('შეცდომა: ' + err.message, true);
+      }
+    };
+
     window.clearAllData = async () => {
       if (!confirm('ყველა პაციენტი წაიშლება!') || !confirm('დარწმუნებული ხართ?')) return;
       const snap = await getDocs(currentCollection);
@@ -363,6 +395,7 @@
 
       const p = patients.find(x => x.id === id); if (!p) return;
       const marked = isChecklistMarked(id);
+      const toLabel = currentCollection?.id === 'observation_room' ? 'შოკის დარბაზში' : 'ობსერვაციის დარბაზში';
 
       document.getElementById('popup-patient-name').textContent = p.patient_name || '—';
 
@@ -370,6 +403,7 @@
         <button class="popup-btn popup-checklist" onclick="openChecklist('${id}')">📋 ჩექლისთი</button>
         <button class="popup-btn popup-emergency" onclick="openEmergency('${id}')">🚨 სასწრაფო გასინჯვა</button>
         <button class="popup-btn popup-forma" onclick="openForma100('${id}')">📄 ფორმა № IV-100/ა</button>
+        <button class="popup-btn popup-transfer" onclick="transferPatient('${id}')">↔️ ${toLabel}</button>
         <div class="popup-divider"></div>
         <button class="popup-btn popup-mark ${marked ? 'popup-marked' : ''}" onclick="toggleChecklistMark('${id}')">
           ${marked ? '✅ მონიშვნის მოხსნა' : '☑️ ჩექლისთის მონიშვნა'}
@@ -574,6 +608,7 @@
     .popup-btn:hover { background: #eff6ff; color: #1d4ed8; }
     .popup-btn.popup-emergency:hover { background: #fef2f2; color: #dc2626; }
     .popup-btn.popup-forma:hover { background: #f5f3ff; color: #6d28d9; }
+    .popup-btn.popup-transfer:hover { background: #ecfeff; color: #0f766e; }
     .popup-btn.popup-marked { color: #059669; }
     .popup-btn.popup-marked:hover { background: #f0fdf4; color: #047857; }
     .popup-divider { height: 1px; background: #e2e8f0; margin: .3rem .45rem; }
