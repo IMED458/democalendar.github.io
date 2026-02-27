@@ -220,9 +220,10 @@
       .wrap { padding:6mm 10mm 10mm !important; max-width:none !important; margin:0 !important; }
       textarea.f   { display:none !important; }
       .print-proxy { display:block !important; }
-      .sec { page-break-inside:avoid; break-inside:avoid; margin-bottom:3mm; }
-      .sec-body { margin-top:2mm; }
-      .diag-list, .diag-item { page-break-inside:avoid; break-inside:avoid; }
+      .sec { page-break-inside:auto; break-inside:auto; margin-bottom:3mm; }
+      .sec-title { page-break-after:avoid; break-after:avoid-page; }
+      .sec-body { margin-top:2mm; page-break-inside:auto; break-inside:auto; }
+      .diag-list, .diag-item { page-break-inside:auto; break-inside:auto; }
       .diag-item .code { background:#eff6ff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .col-badge { background:#111 !important; color:#fff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       input[type="date"], input[type="text"] { border:none !important; border-bottom:1px solid #555 !important; }
