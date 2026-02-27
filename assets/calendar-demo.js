@@ -46,6 +46,10 @@ const selectedDateView = document.getElementById('selected-date-view');
 const exportBtn = document.getElementById('export-excel');
 const deptSearch = document.getElementById('dept-search');
 const statusEl = document.getElementById('status');
+const tabShift = document.getElementById('tab-shift');
+const tabNewDoctor = document.getElementById('tab-new-doctor');
+const shiftTabPanel = document.getElementById('shift-tab-panel');
+const newDoctorTabPanel = document.getElementById('new-doctor-tab-panel');
 
 function makeId(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -93,10 +97,11 @@ function renderDoctorList() {
   doctorList.innerHTML = filtered.length === 0 ? '<div style="padding:20px;text-align:center;color:#888;">ექიმი არ მოიძებნა</div>' : '';
 
   filtered.forEach((d) => {
+    const initial = d.name.trim().charAt(0).toUpperCase();
     const div = document.createElement('div');
     div.className = 'doctor-item';
     if (selectedDoctor && selectedDoctor.name === d.name && selectedDoctor.phone === d.phone) div.classList.add('selected');
-    div.innerHTML = `<strong>${d.name}</strong><br><small>${d.specialty} • ${d.phone}</small>`;
+    div.innerHTML = `<div class="doctor-avatar">${initial}</div><div class="doctor-meta"><strong>${d.name}</strong><small>${d.specialty} • ${d.phone}</small></div>`;
     div.onclick = () => {
       selectedDoctor = d;
       modalPhone.value = d.phone;
@@ -105,6 +110,14 @@ function renderDoctorList() {
     };
     doctorList.appendChild(div);
   });
+}
+
+function setModalTab(tabName) {
+  const isShiftTab = tabName === 'shift';
+  tabShift.classList.toggle('active', isShiftTab);
+  tabNewDoctor.classList.toggle('active', !isShiftTab);
+  shiftTabPanel.classList.toggle('hidden', !isShiftTab);
+  newDoctorTabPanel.classList.toggle('hidden', isShiftTab);
 }
 
 function renderCalendar() {
@@ -346,12 +359,16 @@ openBtn.onclick = () => {
   modal.classList.add('active');
   selectedDoctor = null;
   modalPhone.value = '';
+  setModalTab('shift');
   renderDoctorList();
 };
 
 closeBtn.onclick = () => {
   modal.classList.remove('active');
 };
+
+tabShift.onclick = () => setModalTab('shift');
+tabNewDoctor.onclick = () => setModalTab('new-doctor');
 
 document.getElementById('prev-month').onclick = () => {
   currentMonth = (currentMonth - 1 + 12) % 12;
