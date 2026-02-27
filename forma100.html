@@ -104,8 +104,8 @@ input.in:focus{border-bottom-color:#111;}
 .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:2px 7px;margin:4px 0 2px;font-weight:600;}
 .dr-row{display:flex;align-items:center;gap:8px;padding:6px 0 3px;}
 .dr-row label{font-size:.8rem;font-weight:700;color:#111;white-space:nowrap;}
-input.dri{flex:1;max-width:300px;border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;padding:3px 2px;background:transparent;color:#111 !important;}
-input.dri:focus{border-bottom-color:#111;}
+input.dri,select.dri{flex:1;max-width:320px;border:none;border-bottom:1px solid #bbb;outline:none;font-family:inherit;font-size:.9rem;padding:3px 2px;background:transparent;color:#111 !important;}
+input.dri:focus,select.dri:focus{border-bottom-color:#111;}
 .sign-line{display:flex;align-items:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap;}
 .sign-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:180px;}
 .sign-item .sl{font-size:.73rem;color:#555;}
@@ -131,7 +131,7 @@ input.dri:focus{border-bottom-color:#111;}
   .row{break-inside:auto;page-break-inside:auto;}
   .row-label{break-after:avoid-page;page-break-after:avoid;}
   .row-body{break-inside:auto;page-break-inside:auto;}
-  input.f,input.df,input.dri,input.ic,input.in{
+  input.f,input.df,input.dri,select.dri,input.ic,input.in{
     border:none!important;border-bottom:1px solid #000!important;
     color:#000!important;background:transparent!important;
   }
@@ -275,11 +275,27 @@ input.dri:focus{border-bottom-color:#111;}
   <div class="row open has-content" id="r18">
     <div class="row-label" onclick="tog('r18')"><span><span class="rn">18.</span>მკურნალი ექიმი:</span><span class="arr">▼</span></div>
     <div class="row-body">
-      <div class="dr-row"><label>ექიმი:</label><input type="text" class="dri" id="doctor" placeholder="სახელი გვარი"/></div>
+      <div class="dr-row">
+        <label>ექიმი:</label>
+        <select class="dri" id="doctor">
+          <option value="">აირჩიეთ ექიმი</option>
+          <option value="ნინო კიკვაძე">ნინო კიკვაძე</option>
+          <option value="ანა დალაქიშვილი">ანა დალაქიშვილი</option>
+          <option value="ეკატერინე მიქელაძე">ეკატერინე მიქელაძე</option>
+          <option value="მურადი მიგინეიშვილი">მურადი მიგინეიშვილი</option>
+          <option value="მარიამ კვერნაძე">მარიამ კვერნაძე</option>
+          <option value="ქეთევან ზედელაშვილი">ქეთევან ზედელაშვილი</option>
+          <option value="თეკლა მაისურაძე">თეკლა მაისურაძე</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="signature-block">
+    <div class="sign-part" id="doctor-sign-part" style="display:none;">
+      <img id="doctor-signature" alt="ექიმის ხელმოწერა">
+      <div class="label">მკურნალი ექიმის ხელმოწერა</div>
+    </div>
     <div class="sign-part">
       <img src="kaxa.png" alt="ხელმძღვანელის ხელმოწერა">
       <div class="label">დაწესებულების ხელმძღვანელი / მოადგილე</div>
@@ -382,7 +398,12 @@ if(DOB){const a=calcAge(DOB); if(a) document.getElementById('f4-age').textConten
 document.getElementById('f5').value = PERSONAL_ID;
 document.getElementById('f6').value = ADDRESS;
 // f8c და f8d ემერჯენსის Firebase-დან ივსება (იხ. onSnapshot)
-document.getElementById('doctor').value = DOCTOR_URL;
+if(DOCTOR_URL){
+  const doctorSelect = document.getElementById('doctor');
+  ensureDoctorOption(doctorSelect, DOCTOR_URL);
+  doctorSelect.value = DOCTOR_URL;
+}
+updateDoctorSignature();
 document.getElementById('f20').value = formatCurrentDateGE();
 
 // toggle
@@ -403,11 +424,42 @@ function syncAllProxies(){
   document.querySelectorAll('textarea.f').forEach(syncProxy);
 }
 
+function ensureDoctorOption(selectEl, value){
+  if(!selectEl || !value) return;
+  const exists = Array.from(selectEl.options).some(o => o.value === value);
+  if(!exists){
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    selectEl.appendChild(opt);
+  }
+}
+
+function updateDoctorSignature(){
+  const selectEl = document.getElementById('doctor');
+  const val = (selectEl?.value || '').trim();
+  const signPart = document.getElementById('doctor-sign-part');
+  const signImg = document.getElementById('doctor-signature');
+  if(!val){
+    signPart.style.display = 'none';
+    signImg.removeAttribute('src');
+    return;
+  }
+  signImg.onload = () => { signPart.style.display = 'block'; };
+  signImg.onerror = () => {
+    signPart.style.display = 'none';
+    signImg.removeAttribute('src');
+  };
+  signImg.alt = `${val} ხელმოწერა`;
+  signImg.src = `${encodeURIComponent(val)}.png`;
+}
+
 document.querySelectorAll('textarea.auto').forEach(ta=>{
   ta.addEventListener('input',()=>{ autoResize(ta); syncProxy(ta); });
 });
 
 window.addEventListener('beforeprint', syncAllProxies);
+document.getElementById('doctor').addEventListener('change', () => { updateDoctorSignature(); saveData(); });
 
 // auto open rows
 const textFieldRows = {f2:'r2',f7:'r7',f10:'r10',f11:'r11',f12:'r12',f13:'r13',f14:'r14',f15:'r15',f16:'r16',f17:'r17'};
@@ -669,6 +721,8 @@ if(F100_DOC){
     loadField('f10','r10'); loadField('f11','r11'); loadField('f12','r12'); loadField('f13','r13');
     loadField('f14','r14'); loadField('f15','r15'); loadField('f16','r16'); loadField('f17','r17');
     loadField('f20','r20'); loadField('doctor','r18');
+    ensureDoctorOption(document.getElementById('doctor'), document.getElementById('doctor').value);
+    updateDoctorSignature();
     if(Array.isArray(d.diagSec)){
       diagSec = d.diagSec;
       renderList(diagSec,'diag-sec-list','rmSec');

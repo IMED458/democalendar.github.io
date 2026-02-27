@@ -77,8 +77,9 @@
     .now-btn:hover{background:#111;color:#fff;border-color:#111;}
     .doctor-row{display:flex;align-items:center;gap:12px;margin:16px 0 10px 0;}
     .doctor-row label{font-size:0.9rem;font-weight:600;white-space:nowrap;min-width:140px;}
-    .doctor-row input{flex:1;max-width:400px;border:none;border-bottom:1px solid #ccc;padding:6px 3px;font-size:0.96rem;}
-    .doctor-row input:focus{border-bottom-color:#111;}
+    .doctor-row input,.doctor-row select{flex:1;max-width:420px;border:none;border-bottom:1px solid #ccc;padding:6px 3px;font-size:0.96rem;background:transparent;font-family:inherit;color:#111;outline:none;}
+    .doctor-row input:focus,.doctor-row select:focus{border-bottom-color:#111;}
+    .doctor-sign{width:130px;max-width:35vw;height:auto;max-height:46px;object-fit:contain;display:none;}
 
     /* ── ICD inputs row ── */
     .icd-inputs{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:8px;}
@@ -300,7 +301,17 @@
         <div class="print-proxy" id="st-adm-proxy"></div>
         <div class="doctor-row">
           <label>ექიმი:</label>
-          <input type="text" id="doctor-adm" placeholder="სახელი გვარი"/>
+          <select id="doctor-adm">
+            <option value="">აირჩიეთ ექიმი</option>
+            <option value="ნინო კიკვაძე">ნინო კიკვაძე</option>
+            <option value="ანა დალაქიშვილი">ანა დალაქიშვილი</option>
+            <option value="ეკატერინე მიქელაძე">ეკატერინე მიქელაძე</option>
+            <option value="მურადი მიგინეიშვილი">მურადი მიგინეიშვილი</option>
+            <option value="მარიამ კვერნაძე">მარიამ კვერნაძე</option>
+            <option value="ქეთევან ზედელაშვილი">ქეთევან ზედელაშვილი</option>
+            <option value="თეკლა მაისურაძე">თეკლა მაისურაძე</option>
+          </select>
+          <img class="doctor-sign" id="doctor-adm-sign" alt="ექიმის ხელმოწერა"/>
         </div>
       </div>
 
@@ -321,7 +332,17 @@
         <div class="print-proxy" id="st-tr-proxy"></div>
         <div class="doctor-row">
           <label>ექიმი:</label>
-          <input type="text" id="doctor-tr" placeholder="სახელი გვარი"/>
+          <select id="doctor-tr">
+            <option value="">აირჩიეთ ექიმი</option>
+            <option value="ნინო კიკვაძე">ნინო კიკვაძე</option>
+            <option value="ანა დალაქიშვილი">ანა დალაქიშვილი</option>
+            <option value="ეკატერინე მიქელაძე">ეკატერინე მიქელაძე</option>
+            <option value="მურადი მიგინეიშვილი">მურადი მიგინეიშვილი</option>
+            <option value="მარიამ კვერნაძე">მარიამ კვერნაძე</option>
+            <option value="ქეთევან ზედელაშვილი">ქეთევან ზედელაშვილი</option>
+            <option value="თეკლა მაისურაძე">თეკლა მაისურაძე</option>
+          </select>
+          <img class="doctor-sign" id="doctor-tr-sign" alt="ექიმის ხელმოწერა"/>
         </div>
       </div>
     </div>
@@ -368,7 +389,17 @@
     <div class="sec-body">
       <div class="doctor-row" style="margin-top:6px;">
         <label>სახელი გვარი:</label>
-        <input type="text" id="doctor-main" placeholder="მკურნალი ექიმის სახელი გვარი"/>
+        <select id="doctor-main">
+          <option value="">აირჩიეთ ექიმი</option>
+          <option value="ნინო კიკვაძე">ნინო კიკვაძე</option>
+          <option value="ანა დალაქიშვილი">ანა დალაქიშვილი</option>
+          <option value="ეკატერინე მიქელაძე">ეკატერინე მიქელაძე</option>
+          <option value="მურადი მიგინეიშვილი">მურადი მიგინეიშვილი</option>
+          <option value="მარიამ კვერნაძე">მარიამ კვერნაძე</option>
+          <option value="ქეთევან ზედელაშვილი">ქეთევან ზედელაშვილი</option>
+          <option value="თეკლა მაისურაძე">თეკლა მაისურაძე</option>
+        </select>
+        <img class="doctor-sign" id="doctor-main-sign" alt="ექიმის ხელმოწერა"/>
       </div>
     </div>
   </div>
@@ -627,10 +658,55 @@
     document.querySelectorAll('textarea.f').forEach(syncProxy);
   }
 
+  function ensureDoctorOption(selectEl, value) {
+    if (!selectEl || !value) return;
+    const exists = Array.from(selectEl.options).some(o => o.value === value);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      selectEl.appendChild(opt);
+    }
+  }
+
+  function updateDoctorSignature(selectId) {
+    const sel = document.getElementById(selectId);
+    const img = document.getElementById(selectId + '-sign');
+    if (!sel || !img) return;
+    const val = (sel.value || '').trim();
+    if (!val) {
+      img.style.display = 'none';
+      img.removeAttribute('src');
+      return;
+    }
+    img.onload = () => { img.style.display = 'block'; };
+    img.onerror = () => {
+      img.style.display = 'none';
+      img.removeAttribute('src');
+    };
+    img.alt = `${val} ხელმოწერა`;
+    img.src = `${encodeURIComponent(val)}.png`;
+  }
+
+  function setDoctorValue(selectId, value) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const nextValue = (value || '').trim();
+    ensureDoctorOption(sel, nextValue);
+    sel.value = nextValue;
+    updateDoctorSignature(selectId);
+  }
+
   document.querySelectorAll('textarea.f').forEach(ta => {
     ta.addEventListener('input', () => { autoResize(ta); syncProxy(ta); });
     autoResize(ta);
   });
+  ['doctor-adm', 'doctor-tr', 'doctor-main'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', () => updateDoctorSignature(id));
+  });
+  setDoctorValue('doctor-main', doctor);
+  updateDoctorSignature('doctor-adm');
+  updateDoctorSignature('doctor-tr');
 
   window.toggleSec = function(id) {
     document.getElementById(id).classList.toggle('open');
@@ -720,12 +796,12 @@
       document.getElementById('admit-date').value  = d.dtAdmDate  || (admitDt ? admitDt.split('T')[0] : '');
       document.getElementById('admit-time').value  = d.dtAdmTime  || (admitDt ? admitDt.split('T')[1]?.slice(0,5) : '');
       document.getElementById('st-adm').value      = d.stAdm      || '';
-      document.getElementById('doctor-adm').value  = d.doctorAdm  || '';
+      setDoctorValue('doctor-adm', d.doctorAdm || '');
       document.getElementById('tr-date').value     = d.dtTrDate   || '';
       document.getElementById('tr-time').value     = d.dtTrTime   || '';
       document.getElementById('st-tr').value       = d.stTr       || '';
-      document.getElementById('doctor-tr').value   = d.doctorTr   || '';
-      document.getElementById('doctor-main').value = d.doctorMain || doctor || '';
+      setDoctorValue('doctor-tr', d.doctorTr || '');
+      setDoctorValue('doctor-main', d.doctorMain || doctor || '');
       if (Array.isArray(d.diagnoses)) { diagnoses = d.diagnoses; renderDiags(); }
       document.querySelectorAll('textarea.f').forEach(ta => { autoResize(ta); syncProxy(ta); });
     });
