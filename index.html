@@ -167,6 +167,20 @@
 
     function renderArchive() {
       let list = patients.filter(p => p.archived);
+      const search = document.getElementById('archive-search')?.value.toLowerCase().trim() || '';
+      if (search) {
+        list = list.filter(p =>
+          (p.patient_name || '').toLowerCase().includes(search) ||
+          (p.history_number || '').toLowerCase().includes(search) ||
+          (p.bed || '').toLowerCase().includes(search) ||
+          (p.doctor || '').toLowerCase().includes(search) ||
+          (p.personal_id || '').toLowerCase().includes(search) ||
+          (p.icd10_code || '').toLowerCase().includes(search) ||
+          (p.comment || '').toLowerCase().includes(search) ||
+          formatDate(p.timestamp).toLowerCase().includes(search) ||
+          formatDate(p.archived_at).toLowerCase().includes(search)
+        );
+      }
       list.sort((a,b) => (b.archived_at?.toMillis() || 0) - (a.archived_at?.toMillis() || 0));
 
       const tbody = document.getElementById('archive-tbody');
@@ -395,6 +409,7 @@
     });
 
     document.getElementById('search')?.addEventListener('input', renderActive);
+    document.getElementById('archive-search')?.addEventListener('input', renderArchive);
   </script>
 
   <style>
@@ -673,6 +688,9 @@
       <div id="archive-tab" class="tab-content">
         <div class="card">
           <h2>არქივი — მწკრივზე დაჭერით გამოვა დამატებითი ქმედებები</h2>
+          <div class="search-filter">
+            <input type="text" id="archive-search" placeholder="არქივში ძებნა: სახელი, ისტ. ნომერი, ექიმი, თარიღი...">
+          </div>
           <table>
             <thead>
               <tr>
