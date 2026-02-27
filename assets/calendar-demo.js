@@ -179,7 +179,7 @@ function renderShiftsForDate(dateStr) {
       byDept[dept].forEach((s) => {
         const item = document.createElement('div');
         item.className = 'shift-item';
-        item.innerHTML = `<div class="shift-info-line"><span class="shift-doctor-name">${s.name}</span><span class="shift-doctor-phone">${s.phone}</span></div><div class="shift-item-actions"><span class="shift-hours">${s.hours} სთ</span><button class="delete-btn" data-id="${s.id}">X</button></div>`;
+        item.innerHTML = `<div class="shift-info-line"><span class="shift-doctor-name">${s.name}</span><span class="shift-separator"> - </span><span class="shift-doctor-phone">${s.phone}</span></div><div class="shift-item-actions"><span class="shift-hours">${s.hours} სთ</span><button class="delete-btn" data-id="${s.id}">X</button></div>`;
         card.appendChild(item);
       });
 
