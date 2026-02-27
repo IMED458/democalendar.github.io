@@ -189,7 +189,9 @@ function renderShiftsForDate(dateStr) {
   document.querySelectorAll('.delete-btn').forEach((btn) => {
     btn.onclick = function onDeleteClick(e) {
       e.stopPropagation();
-      if (confirm(`დარწმუნებული ხართ, რომ გინდათ წაშალოთ ${this.parentElement.parentElement.querySelector('strong').textContent}-ის მორიგეობა?`)) {
+      const doctorNameEl = this.closest('.shift-item')?.querySelector('.shift-doctor-name');
+      const doctorName = doctorNameEl ? doctorNameEl.textContent : 'ამ ექიმის';
+      if (confirm(`დარწმუნებული ხართ, რომ გინდათ წაშალოთ ${doctorName}-ის მორიგეობა?`)) {
         allShifts = allShifts.filter((s) => s.id !== this.dataset.id);
         saveShifts();
         renderCalendar();
