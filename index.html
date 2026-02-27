@@ -167,20 +167,6 @@
 
     function renderArchive() {
       let list = patients.filter(p => p.archived);
-      const search = document.getElementById('archive-search')?.value.toLowerCase().trim() || '';
-      if (search) {
-        list = list.filter(p =>
-          (p.patient_name || '').toLowerCase().includes(search) ||
-          (p.history_number || '').toLowerCase().includes(search) ||
-          (p.bed || '').toLowerCase().includes(search) ||
-          (p.doctor || '').toLowerCase().includes(search) ||
-          (p.personal_id || '').toLowerCase().includes(search) ||
-          (p.icd10_code || '').toLowerCase().includes(search) ||
-          (p.comment || '').toLowerCase().includes(search) ||
-          formatDate(p.timestamp).toLowerCase().includes(search) ||
-          formatDate(p.archived_at).toLowerCase().includes(search)
-        );
-      }
       list.sort((a,b) => (b.archived_at?.toMillis() || 0) - (a.archived_at?.toMillis() || 0));
 
       const tbody = document.getElementById('archive-tbody');
@@ -315,38 +301,6 @@
           .then(() => showToast('წაიშალა'));
     };
 
-    window.transferPatient = async id => {
-      closeActionPopup();
-      if (!currentCollection?.id) return;
-      const p = patients.find(x => x.id === id); if (!p) return;
-
-      const fromRoom = currentCollection.id;
-      const toRoom = fromRoom === 'observation_room' ? 'shock_room' : 'observation_room';
-      const toLabel = toRoom === 'shock_room' ? 'შოკის დარბაზი' : 'ობსერვაციის დარბაზი';
-      if (!confirm(`პაციენტის გადაყვანა: ${toLabel}-ში?`)) return;
-
-      try {
-        const payload = { ...p, transferred_from: fromRoom, transferred_to: toRoom, transferred_at: serverTimestamp() };
-        delete payload.id;
-        await setDoc(doc(db, toRoom, id), payload);
-        await deleteDoc(doc(db, fromRoom, id));
-
-        const oldChecklistId = `${fromRoom}_${id}`;
-        const newChecklistId = `${toRoom}_${id}`;
-        const checklistMeta = checklistMetaByPatient[id];
-        if (checklistMeta) {
-          const movedChecklist = { ...checklistMeta, room: toRoom, updatedAt: serverTimestamp() };
-          delete movedChecklist.id;
-          await setDoc(doc(db, 'patient_checklists', newChecklistId), movedChecklist, { merge: true });
-          await deleteDoc(doc(db, 'patient_checklists', oldChecklistId));
-        }
-
-        showToast(`პაციენტი გადაიყვანეს: ${toLabel}-ში`);
-      } catch (err) {
-        showToast('შეცდომა: ' + err.message, true);
-      }
-    };
-
     window.clearAllData = async () => {
       if (!confirm('ყველა პაციენტი წაიშლება!') || !confirm('დარწმუნებული ხართ?')) return;
       const snap = await getDocs(currentCollection);
@@ -395,7 +349,6 @@
 
       const p = patients.find(x => x.id === id); if (!p) return;
       const marked = isChecklistMarked(id);
-      const toLabel = currentCollection?.id === 'observation_room' ? 'შოკის დარბაზში' : 'ობსერვაციის დარბაზში';
 
       document.getElementById('popup-patient-name').textContent = p.patient_name || '—';
 
@@ -403,7 +356,6 @@
         <button class="popup-btn popup-checklist" onclick="openChecklist('${id}')">📋 ჩექლისთი</button>
         <button class="popup-btn popup-emergency" onclick="openEmergency('${id}')">🚨 სასწრაფო გასინჯვა</button>
         <button class="popup-btn popup-forma" onclick="openForma100('${id}')">📄 ფორმა № IV-100/ა</button>
-        <button class="popup-btn popup-transfer" onclick="transferPatient('${id}')">↔️ ${toLabel}</button>
         <div class="popup-divider"></div>
         <button class="popup-btn popup-mark ${marked ? 'popup-marked' : ''}" onclick="toggleChecklistMark('${id}')">
           ${marked ? '✅ მონიშვნის მოხსნა' : '☑️ ჩექლისთის მონიშვნა'}
@@ -443,19 +395,275 @@
     });
 
     document.getElementById('search')?.addEventListener('input', renderActive);
-    document.getElementById('archive-search')?.addEventListener('input', renderArchive);
   </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root{--primary:#2563eb;--gray-200:#e2e8f0;--gray-600:#475569;}
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Roboto',sans-serif;background:linear-gradient(135deg,#f0f7ff,#e0f2fe);color:#1e293b;min-height:100vh;}
 
-    /* WELCOME */
-    .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;}
-    .welcome h1{font-size:3.8rem;margin-bottom:1rem;}
-    .room-choice{background:white;color:#1d4ed8;padding:2.5rem 5rem;border-radius:20px;font-size:2rem;font-weight:600;cursor:pointer;margin:1.5rem;min-width:420px;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 20px rgba(0,0,0,.15);}
-    .room-choice:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.2);}
+    /* ── WELCOME ── */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      background: #0b1220;
+      color: white;
+    }
+
+    /* deep layered background */
+    .welcome::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 60% at 20% 110%, rgba(37,99,235,0.35) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 85% -10%, rgba(14,165,233,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(30,58,138,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* fine grid overlay */
+    .welcome::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.032) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* animated orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      animation: orbFloat 12s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(37,99,235,0.18); top: -120px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 380px; height: 380px; background: rgba(14,165,233,0.13); bottom: -80px; right: -60px; animation-delay: -5s; }
+    .orb-3 { width: 260px; height: 260px; background: rgba(99,102,241,0.12); top: 55%; left: 60%; animation-delay: -3s; }
+
+    @keyframes orbFloat {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(24px,-18px) scale(1.04); }
+      66% { transform: translate(-16px,12px) scale(0.97); }
+    }
+
+    /* cross / plus decorative marks */
+    .cross-mark {
+      position: absolute;
+      opacity: 0.08;
+      pointer-events: none;
+      animation: crossPulse 6s ease-in-out infinite;
+    }
+    .cross-mark svg { fill: white; }
+    .cross-mark:nth-child(1) { top: 8%; left: 6%; width: 28px; animation-delay: 0s; }
+    .cross-mark:nth-child(2) { top: 15%; right: 10%; width: 20px; animation-delay: -2s; }
+    .cross-mark:nth-child(3) { bottom: 12%; left: 14%; width: 24px; animation-delay: -4s; }
+    .cross-mark:nth-child(4) { bottom: 22%; right: 7%; width: 16px; animation-delay: -1s; }
+    .cross-mark:nth-child(5) { top: 45%; left: 3%; width: 18px; animation-delay: -3s; }
+
+    @keyframes crossPulse {
+      0%,100% { opacity: 0.07; transform: scale(1) rotate(0deg); }
+      50% { opacity: 0.14; transform: scale(1.15) rotate(10deg); }
+    }
+
+    /* thin horizontal accent lines */
+    .h-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent 100%);
+      pointer-events: none;
+    }
+    .h-line-1 { top: 28%; }
+    .h-line-2 { bottom: 30%; }
+
+    .welcome-inner {
+      position: relative;
+      z-index: 10;
+      animation: wFadeUp .8s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @keyframes wFadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* top pill badge */
+    .welcome-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(8px);
+      color: rgba(255,255,255,0.75);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 100px;
+      margin-bottom: 2.2rem;
+    }
+    .welcome-pill::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* main heading */
+    .welcome h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 4.8rem;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      margin-bottom: .6rem;
+      color: #fff;
+    }
+    .welcome h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, #93c5fd, #60a5fa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome-subtitle {
+      font-size: .95rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: .04em;
+      margin-bottom: 3.5rem;
+      font-weight: 400;
+    }
+
+    /* room cards */
+    .room-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .room-choice {
+      position: relative;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: white;
+      padding: 0;
+      border-radius: 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      min-width: 260px;
+      max-width: 300px;
+      transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s, border-color .25s, background .25s;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .room-choice:hover {
+      transform: translateY(-6px) scale(1.01);
+      border-color: rgba(96,165,250,0.5);
+      background: rgba(37,99,235,0.15);
+      box-shadow: 0 20px 60px rgba(37,99,235,0.3), 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    /* top colored strip per card */
+    .room-choice-strip {
+      height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+      transition: height .25s;
+    }
+    .room-choice:hover .room-choice-strip { height: 4px; }
+    .room-choice.shock .room-choice-strip {
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    }
+
+    .room-choice-body {
+      padding: 1.6rem 1.8rem 1.8rem;
+    }
+
+    .room-choice-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 1.5rem;
+      margin-bottom: 1.1rem;
+      transition: background .25s, transform .25s;
+    }
+    .room-choice:hover .room-choice-icon {
+      background: rgba(96,165,250,0.18);
+      transform: scale(1.08);
+    }
+
+    .room-choice h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: .3rem;
+      line-height: 1.3;
+    }
+
+    .room-choice p {
+      font-size: .78rem;
+      color: rgba(255,255,255,0.42);
+      margin-bottom: 1.4rem;
+      letter-spacing: .03em;
+    }
+
+    .room-choice-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .78rem;
+      font-weight: 600;
+      color: rgba(96,165,250,0.8);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      transition: gap .2s, color .2s;
+    }
+    .room-choice:hover .room-choice-arrow { gap: 10px; color: #93c5fd; }
+    .room-choice.shock .room-choice-arrow { color: rgba(167,139,250,0.8); }
+    .room-choice.shock:hover .room-choice-arrow { color: #c4b5fd; }
+
+    /* bottom info strip */
+    .welcome-footer {
+      margin-top: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      color: rgba(255,255,255,0.22);
+      font-size: .72rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .welcome-footer span { display: flex; align-items: center; gap: 6px; }
+    .welcome-footer-dot { width: 1px; height: 14px; background: rgba(255,255,255,0.12); }
 
     /* LAYOUT */
     #app-container{display:none;}
@@ -608,7 +816,6 @@
     .popup-btn:hover { background: #eff6ff; color: #1d4ed8; }
     .popup-btn.popup-emergency:hover { background: #fef2f2; color: #dc2626; }
     .popup-btn.popup-forma:hover { background: #f5f3ff; color: #6d28d9; }
-    .popup-btn.popup-transfer:hover { background: #ecfeff; color: #0f766e; }
     .popup-btn.popup-marked { color: #059669; }
     .popup-btn.popup-marked:hover { background: #f0fdf4; color: #047857; }
     .popup-divider { height: 1px; background: #e2e8f0; margin: .3rem .45rem; }
@@ -618,10 +825,63 @@
 </head>
 <body>
   <div id="welcome-screen" class="welcome">
-    <h1>საწოლების მართვა</h1>
-    <p>აირჩიეთ დარბაზი სამუშაოდ</p>
-    <div class="room-choice" onclick="openRoom('observation')">ობსერვაციის დარბაზი</div>
-    <div class="room-choice" onclick="openRoom('shock')">შოკის დარბაზი</div>
+    <!-- orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- medical cross marks -->
+    <div class="cross-mark"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8h-4V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h4a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1z"/></svg></div>
+    <div class="cross-mark"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8h-4V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h4a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1z"/></svg></div>
+    <div class="cross-mark"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8h-4V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h4a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1z"/></svg></div>
+    <div class="cross-mark"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8h-4V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h4a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1z"/></svg></div>
+    <div class="cross-mark"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8h-4V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4h4a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1z"/></svg></div>
+
+    <div class="h-line h-line-1"></div>
+    <div class="h-line h-line-2"></div>
+
+    <div class="welcome-inner">
+      <div class="welcome-pill">სამედიცინო სისტემა · ინტენსიური მოვლა</div>
+
+      <h1>საწოლების<br><em>მართვა</em></h1>
+      <p class="welcome-subtitle">სტაციონარული პაციენტების მართვის პლატფორმა</p>
+
+      <div class="room-cards">
+        <div class="room-choice" onclick="openRoom('observation')">
+          <div class="room-choice-strip"></div>
+          <div class="room-choice-body">
+            <div class="room-choice-icon">🔬</div>
+            <h2>ობსერვაციის დარბაზი</h2>
+            <p>Observation Room</p>
+            <div class="room-choice-arrow">
+              შესვლა
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="room-choice shock" onclick="openRoom('shock')">
+          <div class="room-choice-strip"></div>
+          <div class="room-choice-body">
+            <div class="room-choice-icon">⚡</div>
+            <h2>შოკის დარბაზი</h2>
+            <p>Shock Room</p>
+            <div class="room-choice-arrow">
+              შესვლა
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="welcome-footer">
+        <span>🏥 კლინიკური სისტემა</span>
+        <div class="welcome-footer-dot"></div>
+        <span>🔒 დაცული გარემო</span>
+        <div class="welcome-footer-dot"></div>
+        <span>⚡ რეალდროული სინქრონიზაცია</span>
+      </div>
+    </div>
   </div>
 
   <div id="app-container">
@@ -723,9 +983,6 @@
       <div id="archive-tab" class="tab-content">
         <div class="card">
           <h2>არქივი — მწკრივზე დაჭერით გამოვა დამატებითი ქმედებები</h2>
-          <div class="search-filter">
-            <input type="text" id="archive-search" placeholder="არქივში ძებნა: სახელი, ისტ. ნომერი, ექიმი, თარიღი...">
-          </div>
           <table>
             <thead>
               <tr>
